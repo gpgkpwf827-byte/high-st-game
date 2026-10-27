@@ -89,15 +89,25 @@ function renderCouncil(){
  function selector(title,items,current,onSelect){
   const box=document.createElement('section');box.className='compact-policy';
   const h=document.createElement('h4');h.textContent=title;box.append(h);
-  const select=document.createElement('select');select.className='compact-select';select.setAttribute('aria-label',title);
-  for(const item of items){const opt=document.createElement('option');opt.value=item.key;opt.textContent=item.label;select.append(opt);}
-  select.value=current;select.disabled=challengeFinished(game);
+  const slider=document.createElement('input');slider.type='range';slider.className='policy-slider';
+  slider.min='0';slider.max=String(items.length-1);slider.step='1';
+  slider.value=String(Math.max(0,items.findIndex(i=>i.key===current)));
+  slider.disabled=challengeFinished(game);
+  slider.setAttribute('aria-label',title+' policy level');
+  const chosen=document.createElement('div');chosen.className='policy-slider-label';chosen.setAttribute('aria-live','polite');
+  const ticks=document.createElement('div');ticks.className='policy-slider-ticks';
+  for(const item of items){const tick=document.createElement('span');tick.textContent=item.label;ticks.append(tick);}
   const detail=document.createElement('p');detail.className='policy-compare';
   const action=document.createElement('button');action.type='button';action.className='policy-action compact-apply';action.textContent='Apply selection';
-  const refresh=()=>{const item=items.find(i=>i.key===select.value);detail.textContent=item.description;action.hidden=select.value===current||challengeFinished(game);};
-  select.addEventListener('change',refresh);
-  action.addEventListener('click',()=>onSelect(select.value));
-  box.append(select,detail,action);policyChoices.append(box);refresh();
+  const refresh=()=>{
+   const item=items[Number(slider.value)];
+   chosen.textContent=item.label;detail.textContent=item.description;
+   action.hidden=item.key===current||challengeFinished(game);
+   slider.style.setProperty('--slider-progress',(Number(slider.value)/(items.length-1)*100)+'%');
+  };
+  slider.addEventListener('input',refresh);
+  action.addEventListener('click',()=>onSelect(items[Number(slider.value)].key));
+  box.append(chosen,slider,ticks,detail,action);policyChoices.append(box);refresh();
  }
  selector('Business rates',[
   {key:'low',label:'Low −20%',description:'Shop costs and council receipts are 20% below standard. Takes effect next trading month.'},
