@@ -101,10 +101,27 @@ function renderGrantPanel(p){
  const b=document.createElement('button');b.type='button';b.textContent='Award £5,000 grant';b.disabled=challengeFinished(game)||game.councilBudget<IMPROVEMENT_GRANT.cost;
  b.addEventListener('click',()=>{game=awardImprovementGrant(game,p);persist();renderAll();});el.append(h,desc,status,b);
 }
-function renderTenantPanel(p){const el=document.getElementById('tenant-section');el.replaceChildren();el.hidden=p.occupied;if(p.occupied)return;
- const h=document.createElement('h4');h.textContent='Bring in a new tenant';const desc=document.createElement('p');desc.textContent='Spend £12,000 to open a new independent shop now; it starts trading on the next Advance Month. Choosing between three applicants arrives in Stage 4.';
- const b=document.createElement('button');b.type='button';b.textContent='Fund £12,000 fit-out';b.disabled=challengeFinished(game)||game.councilBudget<CHALLENGE.tenantFitout;
- b.addEventListener('click',()=>{game=openTenant(game,p.id);persist();renderAll();inspectPremise(p.id,false);openPanel('details');});el.append(h,desc,b);
+function renderTenantPanel(p){
+ const el=document.getElementById('tenant-section');el.replaceChildren();el.hidden=p.occupied;if(p.occupied)return;
+ const h=document.createElement('h4');h.textContent='Choose a new tenant';
+ const desc=document.createElement('p');desc.textContent='Three independent businesses have applied. Choose one: the council pays the same £12,000 fit-out, the shop opens immediately and starts trading next month. Its starting cash is private.';
+ el.append(h,desc);
+ const choices=applicantsForUnit(game,p.id);
+ for(const index of choices){
+  const applicant=TENANT_TEMPLATES[index];
+  const choice=document.createElement('div');choice.className='applicant-option';
+  const name=document.createElement('strong');name.textContent=applicant.icon+' '+applicant.name+' — '+applicant.type;
+  const about=document.createElement('p');about.textContent=applicant.description;
+  const meta=document.createElement('small');meta.textContent='Typical sale '+currency(applicant.finance.averageSale)+' · Estimated '+applicant.finance.transactions+' monthly transactions · Business rates '+currency(applicant.finance.monthlyBusinessRates)+'/month (Standard)';
+  const button=document.createElement('button');button.type='button';button.textContent='Select '+applicant.name+' · '+currency(CHALLENGE.tenantFitout);
+  button.disabled=challengeFinished(game)||game.councilBudget<CHALLENGE.tenantFitout;
+  button.addEventListener('click',()=>{
+   try{game=openTenant(game,p.id,index);persist();renderAll();inspectPremise(p.id,false);openPanel('details');}
+   catch(err){alert(err.message);}
+  });
+  choice.append(name,about,meta,button);el.append(choice);
+ }
+ if(challengeFinished(game)){const note=document.createElement('p');note.textContent='The challenge has finished: no new tenants can open.';el.append(note);}
 }
 function inspectPremise(id,scroll){const p=currentPremise(game,id);if(!p)return;selectedId=id;const el=document.getElementById('details');el.hidden=false;
  document.querySelectorAll('.shop').forEach(b=>{const yes=Number(b.dataset.id)===id;b.classList.toggle('selected',yes);b.setAttribute('aria-pressed',String(yes));});

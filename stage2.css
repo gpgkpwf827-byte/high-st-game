@@ -46,3 +46,10 @@ body.modal-active{overflow:hidden}
 @media(max-width:390px){.front{height:51px}.roof{height:12px}.shop-name{font-size:9px}.shop-type{font-size:8px}.metric-card strong{font-size:17px}}
 
 #risk-box strong{overflow-wrap:anywhere}#report-risks{line-height:1.5;margin-top:12px}
+
+/* Stage 4: applicant cards in existing shop details modal */
+.applicant-option{background:#fff;border:1px solid #d7e4d7;border-radius:12px;padding:12px;margin:10px 0}
+.applicant-option strong{display:block;font-size:14px}
+.applicant-option p{margin:7px 0;font-size:12px}
+.applicant-option small{display:block;color:#597065;line-height:1.5}
+.applicant-option button{display:block;width:100%;margin-top:10px;white-space:normal}
