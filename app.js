@@ -14,6 +14,23 @@ function readGame(){
  return startingGame();
 }
 let game=readGame(), selectedId=null;
+let activePanel=null;
+const modal=document.getElementById('modal');
+const modalSheet=modal.querySelector('.modal-sheet');
+const panelNames={details:'Shop details',council:'Council & rates',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
+function openPanel(id){
+ activePanel=id;
+ for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==id;
+ modal.hidden=false;document.body.classList.add('modal-active');
+ document.getElementById('modal-title').textContent=panelNames[id];
+ modalSheet.focus();
+}
+function closePanel(){
+ activePanel=null;modal.hidden=true;document.body.classList.remove('modal-active');
+ for(const name of Object.keys(panelNames))document.getElementById(name).hidden=true;
+ selectedId=null;renderShops();
+}
+
 function persist(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(game));saveAvailable=true;}catch(e){saveAvailable=false;}
  document.getElementById('save-status').textContent=saveAvailable?'Saved on this browser/device (not cloud-backed).':'Local saving unavailable in this viewer; use Safari/GitHub Pages.';}
 function renderStats(){
@@ -25,7 +42,7 @@ function renderStats(){
 function renderMetrics(){
  const m=townMetrics(game),el=document.getElementById('town-metrics');
  el.replaceChildren();
- for(const [name,value,explain] of [['Footfall',m.footfall.toLocaleString('en-GB'),'Monthly visits'],['Spending power',m.spendingPower.toFixed(0)+'/100','Local economy'],['Attractiveness',m.attractiveness.toFixed(1)+'/100','Shopping environment'],['Commercial vitality',m.vitality.toFixed(1)+'/100','Occupancy · diversity · health']]){
+ for(const [name,value,explain] of [['Footfall',m.footfall.toLocaleString('en-GB'),'Monthly visits'],['Spending power',m.spendingPower.toFixed(0)+'/100','Local economy'],['Attractiveness',m.attractiveness.toFixed(0)+'/100','Shopping environment'],['Commercial vitality',m.vitality.toFixed(0)+'/100','Occupancy · diversity · health']]){
   const card=document.createElement('div');card.className='metric-card';
   const a=document.createElement('small');a.textContent=name;const b=document.createElement('strong');b.textContent=value;const c=document.createElement('small');c.textContent=explain;card.append(a,b,c);el.append(card);
  }
@@ -85,12 +102,12 @@ function renderGrantPanel(p){
 function renderTenantPanel(p){const el=document.getElementById('tenant-section');el.replaceChildren();el.hidden=p.occupied;if(p.occupied)return;
  const h=document.createElement('h4');h.textContent='Bring in a new tenant';const desc=document.createElement('p');desc.textContent='Spend £12,000 to open a new independent shop now; it starts trading on the next Advance Month. Choosing between three applicants arrives in Stage 4.';
  const b=document.createElement('button');b.type='button';b.textContent='Fund £12,000 fit-out';b.disabled=challengeFinished(game)||game.councilBudget<CHALLENGE.tenantFitout;
- b.addEventListener('click',()=>{game=openTenant(game,p.id);persist();renderAll();inspectPremise(p.id,false);});el.append(h,desc,b);
+ b.addEventListener('click',()=>{game=openTenant(game,p.id);persist();renderAll();inspectPremise(p.id,false);openPanel('details');});el.append(h,desc,b);
 }
 function inspectPremise(id,scroll){const p=currentPremise(game,id);if(!p)return;selectedId=id;const el=document.getElementById('details');el.hidden=false;
  document.querySelectorAll('.shop').forEach(b=>{const yes=Number(b.dataset.id)===id;b.classList.toggle('selected',yes);b.setAttribute('aria-pressed',String(yes));});
  for(const [key,value] of [['detail-icon',p.icon],['detail-title',p.name],['detail-description',p.description],['detail-type',p.type],['detail-status',p.occupied?'Trading':'Vacant'],['detail-premise','Premise '+p.id],['detail-position',p.side==='north'?'North side':'South side']])document.getElementById(key).textContent=value;
- buildFinanceDetails(p);renderGrantPanel(p);renderTenantPanel(p);if(scroll)el.scrollIntoView({behavior:'smooth',block:'nearest'});
+ buildFinanceDetails(p);renderGrantPanel(p);renderTenantPanel(p);if(scroll)openPanel('details');
 }
 function renderReport(){const el=document.getElementById('report');el.hidden=!game.latestResults.length;if(el.hidden)return;
  const total=k=>game.latestResults.reduce((sum,r)=>sum+r[k],0);
@@ -103,11 +120,26 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';
- const actions=document.createElement('div');actions.className='event-actions';for(const fund of [true,false]){const b=document.createElement('button');b.type='button';b.className=fund?'primary':'';b.textContent=fund?'Fund '+currency(e.cost):'Decline — £0';b.disabled=fund&&game.councilBudget<e.cost;b.addEventListener('click',()=>{game=decideEvent(game,fund);persist();renderAll();});actions.append(b);}el.append(h,p,actions);
+ const actions=document.createElement('div');actions.className='event-actions';for(const fund of [true,false]){const b=document.createElement('button');b.type='button';b.className=fund?'primary':'';b.textContent=fund?'Fund '+currency(e.cost):'Decline — £0';b.disabled=fund&&game.councilBudget<e.cost;b.addEventListener('click',()=>{game=decideEvent(game,fund);persist();renderAll();closePanel();});actions.append(b);}el.append(h,p,actions);
 }
 function renderFinal(){const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;const o=finalOutcome(game);const h=document.createElement('h3');h.textContent=o.won?'Challenge complete — high street recovered!':'Challenge complete — target missed';const p=document.createElement('p');p.textContent=`Month 12: ${o.occupied}/12 premises occupied (goal: 10). Council fund: ${currency(o.budget)}. Tenant openings: ${o.opened}. Closures: ${o.closures}. Rates collected since this version: ${currency(game.totalRatesReceived||0)}.`;el.append(h,p);}
-function renderAll(){renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();if(selectedId!==null)inspectPremise(selectedId,false);}
-document.getElementById('close').addEventListener('click',()=>{selectedId=null;document.getElementById('details').hidden=true;renderShops();});
-document.getElementById('advance').addEventListener('click',()=>{try{game=runChallengeMonth(game);persist();renderAll();}catch(e){alert(e.message);}});
-document.getElementById('reset').addEventListener('click',()=>{if(!confirm('Restart from Month 1? This replaces your current progress in this version.'))return;game=startingGame();selectedId=null;document.getElementById('details').hidden=true;persist();renderAll();});
-renderAll();persist();
+function renderAll(){
+ renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();
+ if(selectedId!==null)inspectPremise(selectedId,false);
+ if(activePanel){
+  for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==activePanel;
+ }
+}
+document.getElementById('close').addEventListener('click',closePanel);
+document.getElementById('dismiss-modal').addEventListener('click',closePanel);
+modal.addEventListener('click',e=>{if(e.target===modal)closePanel();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closePanel();});
+document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
+document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
+document.getElementById('show-report').addEventListener('click',()=>{
+ if(!game.latestResults.length){alert('The first monthly report will be available after you advance a month.');return;}
+ openPanel('report');
+});
+document.getElementById('advance').addEventListener('click',()=>{try{game=runChallengeMonth(game);persist();renderAll();if(challengeFinished(game))openPanel('final');else if(pendingEvent(game))openPanel('event');else openPanel('report');}catch(e){alert(e.message);}});
+document.getElementById('reset').addEventListener('click',()=>{if(!confirm('Restart from Month 1? This replaces your current progress in this version.'))return;game=startingGame();closePanel();persist();renderAll();});
+renderAll();persist();if(pendingEvent(game))openPanel('event');else if(challengeFinished(game))openPanel('final');
