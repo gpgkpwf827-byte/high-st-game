@@ -30,8 +30,13 @@ function townMetrics(state){
  const neutral=state.startingVitality??vitality.score;
  const delta=vitality.score-neutral;
  const baseFootfall=ECONOMY.footfall*Math.max(.65,1-ECONOMY.monthlyUnderlyingFootfallDecline*(state.month-1));
- const footfall=Math.round(Math.max(0,baseFootfall*(1+delta*.008)));
- const attractiveness=clamp(ECONOMY.attractiveness+delta*.2,0,100);
+ const cp=(typeof councilPolicies==='function'?councilPolicies(state):{cleaning:'basic',lighting:'basic'});
+ const clean=(typeof SERVICES!=='undefined'?SERVICES.cleaning[cp.cleaning]:{attractiveness:0});
+ const light=(typeof SERVICES!=='undefined'?SERVICES.lighting[cp.lighting]:{attractiveness:0,footfall:0});
+ const transport=(typeof TRANSPORT!=='undefined'&&state.transportChoice)?TRANSPORT[state.transportChoice]:null;
+ const marketing=(state.marketingUntil||0)>=state.month?(typeof MARKETING!=='undefined'?MARKETING.footfall:0):0;
+ const footfall=Math.round(Math.max(0,baseFootfall*(1+delta*.008+(light.footfall||0)+(transport?.footfall||0)+marketing)));
+ const attractiveness=clamp(ECONOMY.attractiveness+delta*.2+clean.attractiveness+light.attractiveness+(transport?.attractiveness||0),0,100);
  return {footfall,spendingPower:ECONOMY.spendingPower,attractiveness,vitality:vitality.score,
   occupancyScore:vitality.occupancy,diversityScore:vitality.diversity,businessHealth:vitality.health,baselineVitality:neutral};
 }

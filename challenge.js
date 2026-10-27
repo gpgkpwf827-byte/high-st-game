@@ -16,9 +16,9 @@ const EVENTS=Object.freeze({
 function startingGame(){const initial={version:3,month:1,councilBudget:GAME_CONFIG.startingBudget,
  cashByPremise:Object.fromEntries(PREMISES.filter(p=>p.occupied).map(p=>[p.id,p.finance.cash])),
  latestResults:[],grants:[],businesses:{},interventions:[],decisions:[],history:[],closed:[],opened:[],
- ratesBand:'standard',nextRatesBand:'standard',lastRatesReceipt:0,totalRatesReceived:0,lossStreaks:{},riskSeed:81773,lastClosures:[],applicantChoices:{}};
+ ratesBand:'standard',nextRatesBand:'standard',lastRatesReceipt:0,totalRatesReceived:0,lossStreaks:{},riskSeed:81773,lastClosures:[],applicantChoices:{},councilPolicies:{cleaning:'basic',lighting:'basic'},transportChoice:null,marketingUntil:0,lastServiceCost:0,totalServiceCost:0};
  return {...initial,startingVitality:commercialVitality(initial).score};}
-function normaliseGame(state){return {...state,version:3,lossStreaks:state.lossStreaks||{},riskSeed:state.riskSeed??81773,lastClosures:state.lastClosures||[],applicantChoices:state.applicantChoices||{},ratesBand:state.ratesBand||'standard',nextRatesBand:state.nextRatesBand||state.ratesBand||'standard',lastRatesReceipt:state.lastRatesReceipt||0,totalRatesReceived:state.totalRatesReceived||0};}
+function normaliseGame(state){return {...state,version:3,lossStreaks:state.lossStreaks||{},riskSeed:state.riskSeed??81773,lastClosures:state.lastClosures||[],applicantChoices:state.applicantChoices||{},ratesBand:state.ratesBand||'standard',nextRatesBand:state.nextRatesBand||state.ratesBand||'standard',lastRatesReceipt:state.lastRatesReceipt||0,totalRatesReceived:state.totalRatesReceived||0,councilPolicies:state.councilPolicies||{cleaning:'basic',lighting:'basic'},transportChoice:state.transportChoice||null,marketingUntil:state.marketingUntil||0,lastServiceCost:state.lastServiceCost||0,totalServiceCost:state.totalServiceCost||0};}
 function setRatesPolicy(state,band){
  if(challengeFinished(state))throw Error('Challenge complete.');
  if(!Object.hasOwn(RATE_BANDS,band))throw Error('Unknown rates policy.');
@@ -95,12 +95,13 @@ function runChallengeMonth(state){
   }
  }
  const ratesReceived=results.reduce((s,r)=>s+r.businessRates,0);
- const councilBudget=state.councilBudget+ratesReceived;
+ const serviceCost=serviceCosts(state);
+ const councilBudget=state.councilBudget+ratesReceived-serviceCost;
  const occupancy=PREMISES.filter(p=>(businesses[p.id]||p).occupied).length;
  return {...state,month:state.month+1,councilBudget,ratesBand:band,nextRatesBand:band,
-  lastRatesReceipt:ratesReceived,totalRatesReceived:(state.totalRatesReceived||0)+ratesReceived,
+  lastRatesReceipt:ratesReceived,totalRatesReceived:(state.totalRatesReceived||0)+ratesReceived,lastServiceCost:serviceCost,totalServiceCost:(state.totalServiceCost||0)+serviceCost,
   cashByPremise,businesses,closed,applicantChoices,lossStreaks,lastClosures,latestResults:results,
-  history:[...state.history,{month:state.month,footfall:metrics.footfall,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),rates:ratesReceived,ratesBand:band,budget:councilBudget}]};
+  history:[...state.history,{month:state.month,footfall:metrics.footfall,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget}]};
 }
 function finalOutcome(state){const occupied=occupiedPremises(state).length;
  return {occupied,won:challengeFinished(state)&&occupied>=CHALLENGE.goalOccupied,
