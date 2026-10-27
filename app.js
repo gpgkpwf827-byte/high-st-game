@@ -14,6 +14,8 @@ function readGame(){
  return startingGame();
 }
 let game=readGame(), selectedId=null;
+// Keep Stage 2 saves in their existing key and initialise new risk fields on load.
+game=normaliseGame(game);
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
@@ -107,6 +109,10 @@ function renderTenantPanel(p){const el=document.getElementById('tenant-section')
 function inspectPremise(id,scroll){const p=currentPremise(game,id);if(!p)return;selectedId=id;const el=document.getElementById('details');el.hidden=false;
  document.querySelectorAll('.shop').forEach(b=>{const yes=Number(b.dataset.id)===id;b.classList.toggle('selected',yes);b.setAttribute('aria-pressed',String(yes));});
  for(const [key,value] of [['detail-icon',p.icon],['detail-title',p.name],['detail-description',p.description],['detail-type',p.type],['detail-status',p.occupied?'Trading':'Vacant'],['detail-premise','Premise '+p.id],['detail-position',p.side==='north'?'North side':'South side']])document.getElementById(key).textContent=value;
+ const previous=game.latestResults.find(r=>r.premiseId===p.id)||null;
+ const status=businessRiskStatus(p,game.cashByPremise[p.id]||0,game.ratesBand,previous,(game.lossStreaks||{})[p.id]||0);
+ document.getElementById('risk-box').hidden=!p.occupied;
+ document.getElementById('detail-risk').textContent=p.occupied?status.name+' · '+status.health.toFixed(0)+'/100 · '+status.runway.toFixed(1)+' months cost cover':'';
  buildFinanceDetails(p);renderGrantPanel(p);renderTenantPanel(p);if(scroll)openPanel('details');
 }
 function renderReport(){const el=document.getElementById('report');el.hidden=!game.latestResults.length;if(el.hidden)return;
@@ -117,6 +123,10 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
  document.getElementById('report-budget').textContent=currency(game.councilBudget);
  document.getElementById('report-receipts').textContent=currency(game.lastRatesReceipt||0);
  document.getElementById('report-band').textContent=(game.ratesBand||'standard').toUpperCase();
+ const risks=occupiedPremises(game).map(p=>businessRiskStatus(p,game.cashByPremise[p.id]||0,game.ratesBand,game.latestResults.find(r=>r.premiseId===p.id),(game.lossStreaks||{})[p.id]||0));
+ const struggling=risks.filter(r=>r.name==='Struggling').length,critical=risks.filter(r=>r.name==='Critical').length;
+ const recent=game.lastClosures||[];
+ document.getElementById('report-risks').textContent='Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';

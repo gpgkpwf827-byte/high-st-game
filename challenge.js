@@ -12,9 +12,9 @@ const EVENTS=Object.freeze({
 function startingGame(){const initial={version:3,month:1,councilBudget:GAME_CONFIG.startingBudget,
  cashByPremise:Object.fromEntries(PREMISES.filter(p=>p.occupied).map(p=>[p.id,p.finance.cash])),
  latestResults:[],grants:[],businesses:{},interventions:[],decisions:[],history:[],closed:[],opened:[],
- ratesBand:'standard',nextRatesBand:'standard',lastRatesReceipt:0,totalRatesReceived:0};
+ ratesBand:'standard',nextRatesBand:'standard',lastRatesReceipt:0,totalRatesReceived:0,lossStreaks:{},riskSeed:81773,lastClosures:[]};
  return {...initial,startingVitality:commercialVitality(initial).score};}
-function normaliseGame(state){return {...state,version:2,ratesBand:state.ratesBand||'standard',nextRatesBand:state.nextRatesBand||state.ratesBand||'standard',lastRatesReceipt:state.lastRatesReceipt||0,totalRatesReceived:state.totalRatesReceived||0};}
+function normaliseGame(state){return {...state,version:3,lossStreaks:state.lossStreaks||{},riskSeed:state.riskSeed??81773,lastClosures:state.lastClosures||[],ratesBand:state.ratesBand||'standard',nextRatesBand:state.nextRatesBand||state.ratesBand||'standard',lastRatesReceipt:state.lastRatesReceipt||0,totalRatesReceived:state.totalRatesReceived||0};}
 function setRatesPolicy(state,band){
  if(challengeFinished(state))throw Error('Challenge complete.');
  if(!Object.hasOwn(RATE_BANDS,band))throw Error('Unknown rates policy.');
@@ -39,7 +39,7 @@ function openTenant(state,id){
  const template=TENANT_TEMPLATES[(id-8+TENANT_TEMPLATES.length)%TENANT_TEMPLATES.length];
  const p={...vacant,...template,id,occupied:true,side:vacant.side,finance:{...template.finance}};
  return {...state,councilBudget:state.councilBudget-CHALLENGE.tenantFitout,
- businesses:{...state.businesses,[id]:p},cashByPremise:{...state.cashByPremise,[id]:p.finance.cash},
+ businesses:{...state.businesses,[id]:p},cashByPremise:{...state.cashByPremise,[id]:p.finance.cash},lossStreaks:{...(state.lossStreaks||{}),[id]:0},
  opened:[...state.opened,{id,month:state.month,name:p.name}]};
 }
 function runChallengeMonth(state){
@@ -48,13 +48,16 @@ function runChallengeMonth(state){
  const band=state.nextRatesBand||state.ratesBand||'standard';
  const metrics=townMetrics(state);
  const results=occupiedPremises(state).map(p=>calculateMonthlyTrading(p,state.cashByPremise[p.id],state.month,state.grants,state.interventions,band,metrics));
- const cashByPremise={...state.cashByPremise},businesses={...state.businesses},closed=[...state.closed];
+ const cashByPremise={...state.cashByPremise},businesses={...state.businesses},closed=[...state.closed],lossStreaks={...(state.lossStreaks||{})},lastClosures=[];
  for(const r of results){
   cashByPremise[r.premiseId]=r.closingCash;
-  if(r.closingCash<=0){
-   const p=currentPremise(state,r.premiseId);
-   businesses[p.id]={...p,occupied:false,name:'Unit '+p.id,type:'Vacant premise',icon:'🔑',colour:'#9fa7a0',description:'This unit became vacant after the previous business ran out of cash.'};
-   closed.push({id:p.id,name:p.name,month:state.month});
+  const p=currentPremise(state,r.premiseId);
+  const streak=r.profit<0?(lossStreaks[p.id]||0)+1:0;
+  lossStreaks[p.id]=streak;
+  const exitReason=evaluateExit(p,r,state,streak);
+  if(exitReason){
+   businesses[p.id]={...p,occupied:false,name:'Unit '+p.id,type:'Vacant premise',icon:'🔑',colour:'#9fa7a0',description:'Vacant following the departure of '+p.name+'. Reason: '+exitReason+'.'};
+   const entry={id:p.id,name:p.name,month:state.month,reason:exitReason};closed.push(entry);lastClosures.push(entry);delete lossStreaks[p.id];
   }
  }
  const ratesReceived=results.reduce((s,r)=>s+r.businessRates,0);
@@ -62,7 +65,7 @@ function runChallengeMonth(state){
  const occupancy=PREMISES.filter(p=>(businesses[p.id]||p).occupied).length;
  return {...state,month:state.month+1,councilBudget,ratesBand:band,nextRatesBand:band,
   lastRatesReceipt:ratesReceived,totalRatesReceived:(state.totalRatesReceived||0)+ratesReceived,
-  cashByPremise,businesses,closed,latestResults:results,
+  cashByPremise,businesses,closed,lossStreaks,lastClosures,latestResults:results,
   history:[...state.history,{month:state.month,footfall:metrics.footfall,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),rates:ratesReceived,ratesBand:band,budget:councilBudget}]};
 }
 function finalOutcome(state){const occupied=occupiedPremises(state).length;
