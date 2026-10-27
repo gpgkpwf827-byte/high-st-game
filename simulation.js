@@ -1,14 +1,18 @@
 /* Pure financial logic: no DOM, UI, or council fund changes. */
-function calculateMonthlyTrading(premise, openingCash, tradingMonth, grants=[]) {
+function calculateMonthlyTrading(premise, openingCash, tradingMonth, grants=[],interventions=[]) {
   const f=premise.finance;
   const activeGrant=isGrantActive(grants,premise.id,tradingMonth);
   const baseTransactions=f.transactions;
-  const transactions=activeGrant?Math.round(baseTransactions*(1+IMPROVEMENT_GRANT.transactionUplift)):baseTransactions;
+  // Gradual demand pressure is a scenario assumption, not UK economic data.
+  const demandFactor=Math.max(0.5,1-CHALLENGE.monthlyDemandDecline*(tradingMonth-1));
+  const eventUplift=interventions.filter(x=>tradingMonth>=x.startMonth&&tradingMonth<x.startMonth+x.duration).reduce((s,x)=>s+x.uplift,0);
+  const grantUplift=activeGrant?IMPROVEMENT_GRANT.transactionUplift:0;
+  const transactions=Math.max(0,Math.round(baseTransactions*demandFactor*(1+grantUplift+eventUplift)));
   const revenue=transactions*f.averageSale;
   const businessRates=calculateMonthlyBusinessRates(premise);
   const totalExpenses=f.rent+f.wages+f.otherCosts+businessRates;
   const profit=revenue-totalExpenses;
-  return {premiseId:premise.id,tradingMonth,baseTransactions,transactions,activeGrant,
+  return {premiseId:premise.id,tradingMonth,baseTransactions,transactions,activeGrant,demandFactor,eventUplift,grantUplift,
    averageSale:f.averageSale,revenue,rent:f.rent,wages:f.wages,otherCosts:f.otherCosts,
    businessRates,totalExpenses,profit,openingCash,closingCash:openingCash+profit};
 }
