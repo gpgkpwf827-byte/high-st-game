@@ -1,0 +1,8 @@
+/* Stage 2 additions; keep original styles.css unchanged. */
+.rowshops{grid-template-columns:repeat(6,minmax(0,1fr));gap:4px}
+.town-metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:0 0 16px}
+.metric-card{display:flex;flex-direction:column;gap:4px;border:1px solid #dfe5d9;border-radius:12px;background:#fff;padding:12px}
+.metric-card small{font-size:11px;color:#687d70}
+.metric-card strong{font-size:21px;letter-spacing:-.02em}
+@media(max-width:390px){.rowshops{gap:1px}.shop-name{font-size:9px}.front{height:57px}.shop-icon{font-size:19px}.metric-card strong{font-size:19px}}
+@media(min-width:720px){.town-metrics{grid-template-columns:repeat(4,minmax(0,1fr))}}
