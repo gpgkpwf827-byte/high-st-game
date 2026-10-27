@@ -39,6 +39,7 @@ function renderStats(){
  document.getElementById('budget').textContent=currency(game.councilBudget);
  document.getElementById('occupancy').textContent=`${occupiedPremises(game).length}/${PREMISES.length}`;
  document.getElementById('month').textContent=challengeFinished(game)?'12 / 12':game.month+' / 12';
+ document.getElementById('capacity-points').textContent=actionsRemaining(game)+' / 3 points remaining';
  document.getElementById('advance').disabled=challengeFinished(game);
  renderNotificationBadge();
 }
@@ -76,6 +77,7 @@ function renderCouncil(){
  const hint=document.createElement('strong');hint.textContent='Town impact — current policies';
  const values=document.createElement('p');values.textContent=previewMetrics(game);
  const projections=projectedCouncil(game);
+ const capacity=document.createElement('p');capacity.textContent='Council capacity: '+actionsRemaining(game)+'/3 points available this month. Grants, tenants and marketing cost 1; transport costs 2. Routine policies and required events are free.';impact.append(capacity);
  const money=document.createElement('p');money.textContent='Projected rates receipts '+currency(projections.receipts)+'/month · Services '+currency(projections.expense)+'/month · Net '+currency(projections.net)+'/month';
  impact.append(hint,values,money);c.append(impact);
  const note=document.createElement('p');note.textContent='Select a policy to preview its impact before confirming. Changes to services affect the next trading calculation; their costs are charged each trading month.';c.append(note);
@@ -98,20 +100,20 @@ function renderCouncil(){
   const confirm=document.createElement('button');confirm.type='button';confirm.className='policy-action';confirm.textContent='Confirm service change';confirm.hidden=true;
   sec.append(options,preview,confirm);
  }
- const investment=section('Major transport choice','One strategic investment: choose buses OR free parking. Permanent footfall uplift (illustrative).');
+ const investment=section('Major transport choice','One strategic investment: choose buses OR free parking. Costs 2 action points, permanent footfall uplift (illustrative).');
  if(game.transportChoice){const p=document.createElement('p');p.textContent='Selected: '+TRANSPORT[game.transportChoice].name+'.';investment.append(p);}else{
   for(const [key,rule] of Object.entries(TRANSPORT)){
    const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent=rule.name+' · '+currency(rule.cost);
-   btn.disabled=challengeFinished(game)||game.councilBudget<rule.cost;
+   btn.disabled=challengeFinished(game)||game.councilBudget<rule.cost||actionsRemaining(game)<2;
    const preview=document.createElement('p');preview.className='policy-compare';
-   btn.addEventListener('click',()=>{const proposed=chooseTransport(game,key);preview.textContent='Projected: '+previewMetrics(proposed)+' · Fund after purchase '+currency(proposed.councilBudget);ok.hidden=false;ok.onclick=()=>{game=proposed;persist();renderAll();openPanel('council');};});
+   btn.addEventListener('click',()=>{const proposed=chooseCapacityTransport(game,key);preview.textContent='Projected: '+previewMetrics(proposed)+' · Fund after purchase '+currency(proposed.councilBudget);ok.hidden=false;ok.onclick=()=>{game=proposed;persist();renderAll();openPanel('council');};});
    const ok=document.createElement('button');ok.type='button';ok.className='policy-action';ok.textContent='Confirm '+rule.name;ok.hidden=true;
    investment.append(btn,preview,ok);
   }
  }
- const campaign=section('Local marketing','£5,000 for a two-month +8% footfall campaign; temporary and optional.');
- const b=document.createElement('button');b.type='button';b.className='policy-action';b.textContent='Fund marketing · £5,000';b.disabled=challengeFinished(game)||game.councilBudget<MARKETING.cost||(game.marketingUntil||0)>=game.month;
- b.addEventListener('click',()=>{const proposed=startMarketing(game);const ok=confirm('Fund a two-month campaign for £5,000? Projected town footfall: '+townMetrics(proposed).footfall.toLocaleString('en-GB')+' visits.');if(ok){game=proposed;persist();renderAll();openPanel('council');}});campaign.append(b);
+ const campaign=section('Local marketing','£5,000 and 1 action point for a two-month +8% footfall campaign.');
+ const b=document.createElement('button');b.type='button';b.className='policy-action';b.textContent='Fund marketing · £5,000';b.disabled=challengeFinished(game)||game.councilBudget<MARKETING.cost||actionsRemaining(game)<1||(game.marketingUntil||0)>=game.month;
+ b.addEventListener('click',()=>{if(actionsRemaining(game)<1)return alert('No council action points remain.');const proposed=startCapacityMarketing(game);const ok=confirm('Fund a two-month campaign for £5,000? Projected town footfall: '+townMetrics(proposed).footfall.toLocaleString('en-GB')+' visits.');if(ok){game=proposed;persist();renderAll();openPanel('council');}});campaign.append(b);
  const e=pendingEvent(game);if(e){const sec=section('Pending event',e.title+' — decide before advancing.');const btn=document.createElement('button');btn.className='policy-action';btn.textContent='Review event';btn.addEventListener('click',()=>openPanel('event'));sec.append(btn);}
  const footer=document.createElement('p');footer.className='grant-note';footer.textContent='Existing £5,000 grants remain available when inspecting individual shops. The new figures are provisional game-balancing assumptions.';c.append(footer);
 }
@@ -144,17 +146,17 @@ function buildFinanceDetails(p){
 }
 function renderGrantPanel(p){
  const el=document.getElementById('grant-section');el.replaceChildren();el.hidden=!p.occupied;if(!p.occupied)return;
- const h=document.createElement('h4');h.textContent='Council improvement grant';
+ const h=document.createElement('h4');h.textContent='Council improvement grant · 1 action point';
  const desc=document.createElement('p');desc.textContent='£5,000 for shopfront improvements; +10% transactions for six trading months. Council cash is spent immediately.';
  const status=document.createElement('p');status.className='grant-note';const grant=grantForPremise(game.grants,p.id);
  if(grant){const left=Math.max(0,grant.awardedMonth+IMPROVEMENT_GRANT.durationMonths-game.month);status.textContent=left?`${left} trading months of benefit remaining.`:'Grant completed; one grant per shop.';el.append(h,desc,status);return;}
  status.textContent='Council fund: '+currency(game.councilBudget);
- const b=document.createElement('button');b.type='button';b.textContent='Award £5,000 grant';b.disabled=challengeFinished(game)||game.councilBudget<IMPROVEMENT_GRANT.cost;
- b.addEventListener('click',()=>{game=awardImprovementGrant(game,p);persist();renderAll();});el.append(h,desc,status,b);
+ const b=document.createElement('button');b.type='button';b.textContent='Award £5,000 grant';b.disabled=challengeFinished(game)||game.councilBudget<IMPROVEMENT_GRANT.cost||actionsRemaining(game)<1;
+ b.addEventListener('click',()=>{game=awardCapacityGrant(game,p);persist();renderAll();});el.append(h,desc,status,b);
 }
 function renderTenantPanel(p){
  const el=document.getElementById('tenant-section');el.replaceChildren();el.hidden=p.occupied;if(p.occupied)return;
- const h=document.createElement('h4');h.textContent='Choose a new tenant';
+ const h=document.createElement('h4');h.textContent='Choose a new tenant · 1 action point';
  const desc=document.createElement('p');desc.textContent='Three independent businesses have applied. Choose one: the council pays the same £12,000 fit-out, the shop opens immediately and starts trading next month. Its starting cash is private.';
  el.append(h,desc);
  const choices=applicantsForUnit(game,p.id);
@@ -165,9 +167,9 @@ function renderTenantPanel(p){
   const about=document.createElement('p');about.textContent=applicant.description;
   const meta=document.createElement('small');meta.textContent='Typical sale '+currency(applicant.finance.averageSale)+' · Estimated '+applicant.finance.transactions+' monthly transactions · Business rates '+currency(applicant.finance.monthlyBusinessRates)+'/month (Standard)';
   const button=document.createElement('button');button.type='button';button.textContent='Select '+applicant.name+' · '+currency(CHALLENGE.tenantFitout);
-  button.disabled=challengeFinished(game)||game.councilBudget<CHALLENGE.tenantFitout;
+  button.disabled=challengeFinished(game)||game.councilBudget<CHALLENGE.tenantFitout||actionsRemaining(game)<1;
   button.addEventListener('click',()=>{
-   try{game=openTenant(game,p.id,index);persist();renderAll();inspectPremise(p.id,false);openPanel('details');}
+   try{game=openCapacityTenant(game,p.id,index);persist();renderAll();inspectPremise(p.id,false);openPanel('details');}
    catch(err){alert(err.message);}
   });
   choice.append(name,about,meta,button);el.append(choice);

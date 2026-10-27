@@ -72,3 +72,5 @@ header{position:relative;padding-right:50px}.notification{position:absolute;righ
 .perf-table th,.perf-table td{border-bottom:1px solid #e3e9df;padding:8px 4px;text-align:right}
 .perf-table th:first-child,.perf-table td:first-child{text-align:left}
 .perf-empty{font-size:13px;color:#708078;margin:15px 0}
+
+.capacity-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#e5efe5;color:#2a604d;padding:9px 12px;border:1px solid #c9dbca;border-radius:12px;margin-bottom:8px;font-size:12px}.capacity-bar strong{font-weight:800}.capacity-bar span{font-weight:750}.policy-preview p{line-height:1.4}

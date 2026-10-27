@@ -1,15 +1,8 @@
-High Street Stage 6A — Performance dashboard (builds on tested Stage 5)
-Replace index.html, app.js, challenge.js, stage2.css.
-Add performance.js. Keep all other Stage 5 files unchanged.
+High Street — Stage 6B Council Capacity patch, on top of tested 6A.
+Replace index.html, app.js, stage2.css. Add capacity.js. Leave ALL OTHER FILES unchanged.
 
-Includes selectable town metrics, council financial metrics and individual shop trading charts.
-Saves use the existing key. New fields are recorded only for newly played months;
-older records with missing fields display Not recorded, rather than invented values.
-Charts use SVG generated locally (no dependencies).
+3 action points per month (no carry over). Grants/tenants/marketing cost 1; transport choice costs 2; routine service/rates settings, events and viewing reports cost zero. Points reset automatically on Advance Month. State saves using the EXISTING save key. Old saved games without action fields start with a fresh 3 points in their current month; existing grants/shops are not retroactively charged.
 
-TEST: Open Performance; cycle all metric choices, including shop measures.
-Advance a month and verify Month 1 values, save/refresh, subsequent month values.
-Check Stage 5 event notifications, rates, council decisions, grants and applicant flows.
+TEST: Month 1: 2 grants + 1 tenant exhaust all points; another grant/tenant/marketing disabled. Change rates/services and resolve events for free. Month 2 points return to 3. After one grant, buses (2 points) exhaust the remainder. Refresh preserves action spending. Existing Stage 6A Performance charts and 12 month end remain.
 
-This is Stage 6A only. Three-action monthly capacity, difficulty changes and events
-are the NEXT internal stages, not included in this patch.
+This release only adds capacity. Difficulty/cost balancing and the balanced success condition are later Stage 6 work.
