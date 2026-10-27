@@ -16,9 +16,9 @@ const EVENTS=Object.freeze({
 function startingGame(){const initial={version:3,month:1,councilBudget:GAME_CONFIG.startingBudget,
  cashByPremise:Object.fromEntries(PREMISES.filter(p=>p.occupied).map(p=>[p.id,p.finance.cash])),
  latestResults:[],grants:[],businesses:{},interventions:[],decisions:[],history:[],closed:[],opened:[],
- ratesBand:'standard',nextRatesBand:'standard',lastRatesReceipt:0,totalRatesReceived:0,lossStreaks:{},riskSeed:81773,lastClosures:[],applicantChoices:{},councilPolicies:{cleaning:'basic',lighting:'basic'},transportChoice:null,marketingUntil:0,lastServiceCost:0,totalServiceCost:0};
+ ratesBand:'standard',nextRatesBand:'standard',lastRatesReceipt:0,totalRatesReceived:0,lossStreaks:{},riskSeed:81773,localEconomy:initialLocalEconomy(),lastClosures:[],applicantChoices:{},councilPolicies:{cleaning:'basic',lighting:'basic'},transportChoice:null,marketingUntil:0,lastServiceCost:0,totalServiceCost:0};
  return {...initial,startingVitality:commercialVitality(initial).score};}
-function normaliseGame(state){return {...state,version:3,lossStreaks:state.lossStreaks||{},riskSeed:state.riskSeed??81773,lastClosures:state.lastClosures||[],applicantChoices:state.applicantChoices||{},ratesBand:state.ratesBand||'standard',nextRatesBand:state.nextRatesBand||state.ratesBand||'standard',lastRatesReceipt:state.lastRatesReceipt||0,totalRatesReceived:state.totalRatesReceived||0,councilPolicies:state.councilPolicies||{cleaning:'basic',lighting:'basic'},transportChoice:state.transportChoice||null,marketingUntil:state.marketingUntil||0,lastServiceCost:state.lastServiceCost||0,totalServiceCost:state.totalServiceCost||0};}
+function normaliseGame(state){return {...state,version:3,lossStreaks:state.lossStreaks||{},riskSeed:state.riskSeed??81773,localEconomy:currentLocalEconomy(state),lastClosures:state.lastClosures||[],applicantChoices:state.applicantChoices||{},ratesBand:state.ratesBand||'standard',nextRatesBand:state.nextRatesBand||state.ratesBand||'standard',lastRatesReceipt:state.lastRatesReceipt||0,totalRatesReceived:state.totalRatesReceived||0,councilPolicies:state.councilPolicies||{cleaning:'basic',lighting:'basic'},transportChoice:state.transportChoice||null,marketingUntil:state.marketingUntil||0,lastServiceCost:state.lastServiceCost||0,totalServiceCost:state.totalServiceCost||0};}
 function setRatesPolicy(state,band){
  if(challengeFinished(state))throw Error('Challenge complete.');
  if(!Object.hasOwn(RATE_BANDS,band))throw Error('Unknown rates policy.');
@@ -82,7 +82,10 @@ function runChallengeMonth(state){
  if(challengeFinished(state))throw Error('Challenge already ended.');
  if(pendingEvent(state))throw Error('Resolve the council event first.');
  const band=state.nextRatesBand||state.ratesBand||'standard';
- const metrics=townMetrics(state);
+ const previousEconomy=currentLocalEconomy(state);
+ const nextEconomy=localEconomyChange(state);
+ const tradingState={...state,localEconomy:nextEconomy};
+ const metrics=townMetrics(tradingState);
  const development=monthlyDevelopment(state);
  const adjustedMetrics={...metrics,footfall:Math.max(0,Math.round(metrics.footfall*(1+development.footfall))),spendingPower:Math.max(0,Math.min(100,metrics.spendingPower+development.spendingPower))};
  const results=occupiedPremises(state).map(p=>calculateMonthlyTrading(p,state.cashByPremise[p.id],state.month,state.grants,state.interventions,band,adjustedMetrics));
@@ -109,10 +112,10 @@ function runChallengeMonth(state){
  const health=occupiedPremises(afterState).map(p=>businessRiskStatus(p,cashByPremise[p.id]||0,band,results.find(r=>r.premiseId===p.id),lossStreaks[p.id]||0));
  const stable=health.filter(h=>h.name==='Stable').length;
  const shopHistory=results.map(r=>({id:r.premiseId,name:currentPremise(state,r.premiseId).name,revenue:r.revenue,profit:r.profit,transactions:r.transactions,cash:r.closingCash}));
- return {...state,month:state.month+1,councilBudget,ratesBand:band,nextRatesBand:band,
+ return {...state,localEconomy:nextEconomy,month:state.month+1,councilBudget,ratesBand:band,nextRatesBand:band,
   lastRatesReceipt:ratesReceived,totalRatesReceived:(state.totalRatesReceived||0)+ratesReceived,lastServiceCost:serviceCost,totalServiceCost:(state.totalServiceCost||0)+serviceCost,
   cashByPremise,businesses,closed,applicantChoices,lossStreaks,lastClosures,latestResults:results,
-  history:[...state.history,{month:state.month,footfall:adjustedMetrics.footfall,spendingPower:adjustedMetrics.spendingPower,development:development.title,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),sales:monthlySales,expenses:monthlyExpenses,transactions:monthlyTransactions,stable,openings:(state.opened||[]).filter(o=>o.month===state.month).length,closures:lastClosures.length,rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget,shops:shopHistory}]};
+  history:[...state.history,{month:state.month,footfall:adjustedMetrics.footfall,spendingPower:adjustedMetrics.spendingPower,underlyingSpendingPower:metrics.spendingPower,employment:nextEconomy.employment,earnings:nextEconomy.earnings,livingCosts:nextEconomy.livingCosts,economyChange:localEconomyExplanation(previousEconomy,nextEconomy),development:development.title,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),sales:monthlySales,expenses:monthlyExpenses,transactions:monthlyTransactions,stable,openings:(state.opened||[]).filter(o=>o.month===state.month).length,closures:lastClosures.length,rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget,shops:shopHistory}]};
 }
 /* Stage 6D: balanced recovery, based on the last COMPLETED trading month. */
 const RECOVERY_GOALS=Object.freeze({occupied:10,footfall:10000,stableShare:.70});

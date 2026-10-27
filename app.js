@@ -19,7 +19,7 @@ game=normaliseGame(game);
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
-const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',issues:'Current issues',performance:'Performance',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
+const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',issues:'Current issues',performance:'Performance','local-economy-panel':'Local economy',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
 function openPanel(id){
  activePanel=id;
  for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==id;
@@ -248,11 +248,12 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
  document.getElementById('report-receipts').textContent=currency(game.lastRatesReceipt||0);
  document.getElementById('report-band').textContent=(game.ratesBand||'standard').toUpperCase();
  document.getElementById('report-services').textContent=currency(game.lastServiceCost||0);
+ const economyDetail=thisMonthEconomyLine();
  const risks=occupiedPremises(game).map(p=>businessRiskStatus(p,game.cashByPremise[p.id]||0,game.ratesBand,game.latestResults.find(r=>r.premiseId===p.id),(game.lossStreaks||{})[p.id]||0));
  const struggling=risks.filter(r=>r.name==='Struggling').length,critical=risks.filter(r=>r.name==='Critical').length;
  const recent=game.lastClosures||[];
  const thisMonth=game.history[game.history.length-1];
- document.getElementById('report-risks').textContent='Town development: '+(thisMonth?.development||'No recorded development')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
+ document.getElementById('report-risks').textContent='Local economy: '+economyDetail+' Town development: '+(thisMonth?.development||'No recorded development')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';
@@ -302,8 +303,29 @@ function renderIssues(){
  const e=pendingEvent(game);if(e)section('Decision awaiting your response',[`Month ${game.month}: ${e.title}. Use the notification bell to review it.`]);
  const metrics=townMetrics(game);section('Current town estimate',[`Footfall: ${metrics.footfall.toLocaleString('en-GB')} visits · Attractiveness: ${metrics.attractiveness.toFixed(0)}/100`,`Commercial Vitality: ${metrics.vitality.toFixed(0)}/100. Vitality contributes to footfall and attractiveness relative to the starting town.`]);
 }
+function thisMonthEconomyLine(){
+ const last=(game.history||[]).at(-1);
+ if(!last||!Number.isFinite(last.underlyingSpendingPower))return 'No recorded economic change yet.';
+ const preceding=(game.history||[]).at(-2);
+ const baseline=preceding&&Number.isFinite(preceding.underlyingSpendingPower)?preceding.underlyingSpendingPower:spendingIndex(initialLocalEconomy());
+ const diff=Math.round((last.underlyingSpendingPower-baseline)*10)/10;
+ return 'Underlying Spending Power '+last.underlyingSpendingPower.toFixed(1)+'/100 ('+(diff>0?'+':'')+diff.toFixed(1)+'); '+last.economyChange+'.';
+}
+function renderLocalEconomy(){
+ const el=document.getElementById('local-economy-content');el.replaceChildren();
+ const e=currentLocalEconomy(game),index=spendingIndex(e),last=(game.history||[]).at(-1);
+ const intro=document.createElement('p');intro.textContent='Local household conditions evolve independently of council policies. Higher employment and earnings improve Spending Power; higher living-cost pressure reduces it.';el.append(intro);
+ const headline=document.createElement('div');headline.className='policy-preview';
+ const top=document.createElement('strong');top.textContent='Underlying Spending Power · '+index.toFixed(1)+'/100';
+ const sub=document.createElement('p');sub.textContent='This is an index of residents’ spending capacity, not actual household income. Temporary town developments may change the trading-month figure.';
+ headline.append(top,sub);el.append(headline);
+ const rows=[['Employment',e.employment,'More people in work supports household spending.'],['Earnings',e.earnings,'Higher local income supports spending per transaction.'],['Living costs',e.livingCosts,'Higher pressure leaves less disposable income.']];
+ for(const [name,val,meaning] of rows){const section=document.createElement('section');section.className='economy-factor';const line=document.createElement('div');line.className='economy-factor-head';const label=document.createElement('strong');label.textContent=name;const value=document.createElement('strong');value.textContent=val.toFixed(1)+'/100';line.append(label,value);const track=document.createElement('div');track.className='economy-track';const fill=document.createElement('div');fill.className='economy-fill'+(name==='Living costs'?' economy-cost':'');fill.style.width=val+'%';track.append(fill);const note=document.createElement('small');note.textContent=meaning;section.append(line,track,note);el.append(section);}
+ const explanation=document.createElement('p');explanation.className='note';explanation.textContent=last&&last.economyChange?'Latest monthly movements: '+last.economyChange+'.':'Initial town economy. Advance a month to see changes.';el.append(explanation);
+ const foot=document.createElement('p');foot.textContent='Calculation: 40% employment + 30% earnings + 30% (100 − living-cost pressure). Baseline 38/100. The factors update monthly, persist between turns and are saved. No direct council interventions are available until Stage 7B.';el.append(foot);
+}
 function renderAll(){
- renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);renderIssues();
+ renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);renderIssues();renderLocalEconomy();
  if(selectedId!==null)inspectPremise(selectedId,false);
  if(activePanel){
   for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==activePanel;
@@ -318,6 +340,7 @@ document.getElementById('reopen-event').addEventListener('click',()=>openPanel('
 document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
 document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
 document.getElementById('show-issues').addEventListener('click',()=>{renderIssues();openPanel('issues');});
+document.getElementById('show-economy').addEventListener('click',()=>{renderLocalEconomy();openPanel('local-economy-panel');});
 document.getElementById('show-performance').addEventListener('click',()=>{renderPerformance(game);openPanel('performance');});
 document.getElementById('show-report').addEventListener('click',()=>{
  if(!game.latestResults.length){alert('The first monthly report will be available after you advance a month.');return;}

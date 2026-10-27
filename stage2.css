@@ -131,3 +131,6 @@ header{position:relative;padding-right:50px}.notification{position:absolute;righ
 .policy-slider-ticks span:first-child{text-align:left}
 .policy-slider-ticks span:last-child{text-align:right}
 .policy-slider:disabled{opacity:.5;cursor:not-allowed}
+
+/* Stage 7A: mobile-friendly local economy summary. */
+.economy-factor{padding:13px 0;border-bottom:1px solid #dde5dc;display:grid;gap:8px}.economy-factor-head{display:flex;justify-content:space-between;gap:10px}.economy-factor small{color:#627468}.economy-track{height:10px;border-radius:8px;background:#e6ebe5;overflow:hidden}.economy-fill{height:100%;background:#368d72;border-radius:8px}.economy-cost{background:#ca8747}
