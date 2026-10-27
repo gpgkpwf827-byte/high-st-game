@@ -85,23 +85,29 @@ function renderCouncil(){
  impact.append(hint,values,money);c.append(impact);
  const note=document.createElement('p');note.textContent='Select a policy to preview its impact before confirming. Changes to services affect the next trading calculation; their costs are charged each trading month.';c.append(note);
  function section(title,description){const sec=document.createElement('section');sec.className='policy-section';const h=document.createElement('h4');h.textContent=title;const p=document.createElement('p');p.textContent=description;sec.append(h,p);c.append(sec);return sec;}
- const rates=section('Business rates','Rates are paid by shops and added to council funds each month.');
- const r=document.createElement('div');r.className='policy-options';
- for(const [band,label] of [['low','Low −20%'],['standard','Standard'],['high','High +20%']]){
- const b=document.createElement('button');b.type='button';b.textContent=label;b.className=(game.nextRatesBand===band?'chosen':'');b.disabled=challengeFinished(game);
- b.addEventListener('click',()=>{game=setRatesPolicy(game,band);persist();renderCouncil();});r.append(b);
- }rates.append(r);
+ const policyChoices=document.createElement('div');policyChoices.className='compact-policies';c.append(policyChoices);
+ function selector(title,items,current,onSelect){
+  const box=document.createElement('section');box.className='compact-policy';
+  const h=document.createElement('h4');h.textContent=title;box.append(h);
+  const select=document.createElement('select');select.className='compact-select';select.setAttribute('aria-label',title);
+  for(const item of items){const opt=document.createElement('option');opt.value=item.key;opt.textContent=item.label;select.append(opt);}
+  select.value=current;select.disabled=challengeFinished(game);
+  const detail=document.createElement('p');detail.className='policy-compare';
+  const action=document.createElement('button');action.type='button';action.className='policy-action compact-apply';action.textContent='Apply selection';
+  const refresh=()=>{const item=items.find(i=>i.key===select.value);detail.textContent=item.description;action.hidden=select.value===current||challengeFinished(game);};
+  select.addEventListener('change',refresh);
+  action.addEventListener('click',()=>onSelect(select.value));
+  box.append(select,detail,action);policyChoices.append(box);refresh();
+ }
+ selector('Business rates',[
+  {key:'low',label:'Low −20%',description:'Shop costs and council receipts are 20% below standard. Takes effect next trading month.'},
+  {key:'standard',label:'Standard',description:'Maintain baseline business-rates costs and council receipts.'},
+  {key:'high',label:'High +20%',description:'Higher council income, but businesses pay 20% more in rates.'}
+ ],game.nextRatesBand,band=>{game=setRatesPolicy(game,band);persist();renderAll();openPanel('council');});
  const cp=councilPolicies(game);
  for(const [key,title] of [['cleaning','Street cleaning'],['lighting','Street lighting']]){
-  const sec=section(title,'Recurring monthly expenditure with a direct effect on Town Attractiveness.');
-  const options=document.createElement('div');options.className='policy-options';
-  const preview=document.createElement('p');preview.className='policy-compare';
-  for(const [level,rule] of Object.entries(SERVICES[key])){
-   const btn=document.createElement('button');btn.type='button';btn.textContent=level+' · '+currency(rule.cost)+'/m';btn.className=cp[key]===level?'chosen':'';btn.disabled=challengeFinished(game);
-   btn.addEventListener('click',()=>{const proposed=changeService(game,key,level);preview.textContent='Proposed: '+previewMetrics(proposed)+' · total services '+currency(serviceCosts(proposed))+'/month';confirm.hidden=false;confirm.onclick=()=>{game=proposed;persist();renderAll();openPanel('council');};});options.append(btn);
-  }
-  const confirm=document.createElement('button');confirm.type='button';confirm.className='policy-action';confirm.textContent='Confirm service change';confirm.hidden=true;
-  sec.append(options,preview,confirm);
+  const items=Object.entries(SERVICES[key]).map(([level,rule])=>({key:level,label:level.charAt(0).toUpperCase()+level.slice(1),description:currency(rule.cost)+'/month · Attractiveness +'+rule.attractiveness+' · Footfall '+(rule.footfall>=0?'+':'')+((rule.footfall||0)*100).toFixed(0)+'% (policy contribution).'}));
+  selector(title,items,cp[key],level=>{game=changeService(game,key,level);persist();renderAll();openPanel('council');});
  }
  const investment=section('Major transport choice','One strategic investment: choose buses OR free parking. Costs 2 action points, permanent footfall uplift (illustrative).');
  if(game.transportChoice){const p=document.createElement('p');p.textContent='Selected: '+TRANSPORT[game.transportChoice].name+'.';investment.append(p);}else{
@@ -152,7 +158,7 @@ function buildFinanceDetails(p){
  const debug=document.createElement('details');debug.className='debug';const label=document.createElement('summary');label.textContent='Calculation debug view';const pre=document.createElement('pre');
  pre.textContent=`Transactions: ${r.baseTransactions} × ${r.demandFactor.toFixed(3)} town conditions × (1 + ${(r.grantUplift*100).toFixed(0)}% grant + ${(r.eventUplift*100).toFixed(0)}% event) = ${r.transactions}\nRevenue: ${r.transactions} × ${currency(r.averageSale)} = ${currency(r.revenue)}\nBusiness rates: ${currency(p.finance.monthlyBusinessRates)} standard × ${ratesBandFactor(r.rateBand).toFixed(1)} = ${currency(r.businessRates)}\nExpenses: ${currency(r.rent)} rent + ${currency(r.wages)} wages + ${currency(r.otherCosts)} other + ${currency(r.businessRates)} rates = ${currency(r.totalExpenses)}\nProfit: ${currency(r.revenue)} − ${currency(r.totalExpenses)} = ${currency(r.profit)}\n${preview?'Forecast; cash has not changed.':`Opening cash: ${currency(r.openingCash)}; closing cash: ${currency(r.closingCash)}`}\nBusiness rates also count as council income when this trading month is processed.`;
  debug.append(label,pre);const note=document.createElement('div');note.className='note';note.textContent='Game estimates only. Rates are paid by shops and received into the same council fund on month advancement.';
- target.append(h,lead,grid,debug,note);
+ const collapsible=document.createElement('details');collapsible.className='finance-collapse';const summary=document.createElement('summary');summary.textContent='Detailed business finances';collapsible.append(summary,h,lead,grid,debug,note);target.append(collapsible);
 }
 function renderGrantPanel(p){
  const el=document.getElementById('grant-section');el.replaceChildren();el.hidden=!p.occupied;if(!p.occupied)return;
@@ -191,6 +197,29 @@ function renderTenantPanel(p){
  }
  if(challengeFinished(game)){const note=document.createElement('p');note.textContent='The challenge has finished: no new tenants can open.';el.append(note);}
 }
+function shopOverview(p){
+ const el=document.getElementById('shop-overview');el.replaceChildren();el.hidden=!p.occupied;
+ if(!p.occupied)return;
+ const latest=game.latestResults.find(r=>r.premiseId===p.id)||null;
+ const estimate=latest||calculateMonthlyTrading(p,game.cashByPremise[p.id],game.month,game.grants,game.interventions,game.nextRatesBand,townMetrics(game));
+ const tiles=document.createElement('div');tiles.className='shop-kpis';
+ for(const [name,v] of [['Monthly profit',currency(estimate.profit)],['Cash reserves',currency(game.cashByPremise[p.id]||0)]]){
+  const tile=document.createElement('div');tile.className='shop-kpi';const small=document.createElement('small');small.textContent=name;const big=document.createElement('strong');big.textContent=v;tile.append(small,big);tiles.append(tile);
+ }
+ const label=document.createElement('strong');label.textContent='Monthly operating profit';
+ const records=(game.history||[]).map(h=>({month:h.month,record:(h.shops||[]).find(s=>s.id===p.id)})).filter(x=>x.record&&Number.isFinite(x.record.profit)).slice(-8);
+ const chart=document.createElement('div');chart.className='shop-spark';
+ if(records.length<2){chart.textContent='Profit trend appears after two completed months of trading.';}
+ else{
+  const vals=records.map(x=>x.record.profit);let min=Math.min(0,...vals),max=Math.max(0,...vals);if(max===min)max=min+1;
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 320 82');svg.setAttribute('role','img');svg.setAttribute('aria-label','Monthly profit trend from '+currency(vals[0])+' to '+currency(vals.at(-1)));
+  const zero=74-(0-min)/(max-min)*64;
+  const line=document.createElementNS('http://www.w3.org/2000/svg','line');for(const [k,v] of Object.entries({x1:4,x2:316,y1:zero,y2:zero,stroke:'#b0bdb2','stroke-dasharray':'3 4'}))line.setAttribute(k,v);svg.append(line);
+  const poly=document.createElementNS('http://www.w3.org/2000/svg','polyline');poly.setAttribute('points',vals.map((v,i)=>(4+i*312/(vals.length-1)).toFixed(1)+','+(74-(v-min)/(max-min)*64).toFixed(1)).join(' '));poly.setAttribute('fill','none');poly.setAttribute('stroke','#2c7355');poly.setAttribute('stroke-width','3');poly.setAttribute('stroke-linecap','round');svg.append(poly);chart.append(svg);
+  const foot=document.createElement('small');foot.textContent='Months '+records[0].month+'–'+records.at(-1).month+' · latest '+currency(vals.at(-1));chart.append(foot);
+ }
+ el.append(tiles,label,chart);
+}
 function inspectPremise(id,scroll){const p=currentPremise(game,id);if(!p)return;selectedId=id;const el=document.getElementById('details');el.hidden=false;
  document.querySelectorAll('.shop').forEach(b=>{const yes=Number(b.dataset.id)===id;b.classList.toggle('selected',yes);b.setAttribute('aria-pressed',String(yes));});
  for(const [key,value] of [['detail-icon',p.icon],['detail-title',p.name],['detail-description',p.description],['detail-type',p.type],['detail-status',p.occupied?'Trading':'Vacant'],['detail-premise','Premise '+p.id],['detail-position',p.side==='north'?'North side':'South side']])document.getElementById(key).textContent=value;
@@ -198,7 +227,7 @@ function inspectPremise(id,scroll){const p=currentPremise(game,id);if(!p)return;
  const status=businessRiskStatus(p,game.cashByPremise[p.id]||0,game.ratesBand,previous,(game.lossStreaks||{})[p.id]||0);
  document.getElementById('risk-box').hidden=!p.occupied;
  document.getElementById('detail-risk').textContent=p.occupied?status.name+' · '+status.health.toFixed(0)+'/100 · '+status.runway.toFixed(1)+' months cost cover':'';
- buildFinanceDetails(p);renderGrantPanel(p);renderTenantPanel(p);if(scroll)openPanel('details');
+ shopOverview(p);buildFinanceDetails(p);renderGrantPanel(p);renderTenantPanel(p);if(scroll)openPanel('details');
 }
 function renderReport(){const el=document.getElementById('report');el.hidden=!game.latestResults.length;if(el.hidden)return;
  const total=k=>game.latestResults.reduce((sum,r)=>sum+r[k],0);

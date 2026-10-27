@@ -93,3 +93,26 @@ header{position:relative;padding-right:50px}.notification{position:absolute;righ
 
 /* Stage 6D recovery assessment */
 .recovery-results{display:grid;gap:8px;margin-top:12px}.recovery-result{border:1px solid #dce7dd;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px}.recovery-result strong{font-size:13px}.recovery-result span{font-size:12px;color:#5b7465}
+
+/* 6D.1 compact policy selectors and shop-first actions */
+.compact-policies{display:grid;gap:8px;margin-top:10px}
+.compact-policy{border:1px solid #dee6dd;border-radius:12px;padding:11px;background:#fafbf8}
+.compact-policy h4{margin:0 0 7px;font-size:14px}
+.compact-select{width:100%;border:1px solid #c5d4c8;border-radius:9px;background:white;padding:10px;min-height:44px;font:inherit}
+.compact-policy .policy-compare{font-size:12px;color:#587062;margin:7px 0 2px}
+.compact-apply{margin-top:8px!important}
+.shop-overview{margin-top:12px;display:grid;gap:11px}
+.shop-kpis{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.shop-kpi{background:#eef3ea;border-radius:11px;padding:11px;display:grid;gap:4px}
+.shop-kpi small{font-size:11px;color:#597463}
+.shop-kpi strong{font-size:19px;overflow-wrap:anywhere}
+.shop-spark{border:1px solid #e1e8de;border-radius:11px;padding:8px 10px;color:#597463;font-size:12px}
+.shop-spark svg{width:100%;height:86px;display:block}
+.shop-spark small{font-size:11px}
+.finance-collapse{margin:12px 0;border:1px solid #d7e2d5;border-radius:12px;padding:12px}
+.finance-collapse>summary{font-weight:800;cursor:pointer;min-height:27px}
+#details>.details{padding:7px 0;margin-top:6px}
+#details>.details>.detail{padding-top:6px}
+#details>.grant-section{margin-top:10px}
+
+.shop-meta{border:1px solid #e1e8df;border-radius:10px;padding:9px;margin-top:8px}.shop-meta summary{font-size:12px;font-weight:700;cursor:pointer}
