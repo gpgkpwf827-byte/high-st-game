@@ -70,6 +70,9 @@ function renderNotifications(){
 function previewMetrics(state){
  const m=townMetrics(state);return 'Footfall '+m.footfall.toLocaleString('en-GB')+' visits  ·  Attractiveness '+m.attractiveness.toFixed(0)+'/100  ·  Spending power '+m.spendingPower.toFixed(0)+'/100  ·  Vitality '+m.vitality.toFixed(0)+'/100';
 }
+function addBlockReason(container,button,reason){
+ if(button.disabled&&reason){const p=document.createElement('p');p.className='unavailable-reason';p.textContent=reason;container.append(p);}
+}
 function renderCouncil(){
  const c=document.getElementById('council');c.replaceChildren();
  const header=document.createElement('h3');header.textContent='Council Management';c.append(header);
@@ -108,12 +111,12 @@ function renderCouncil(){
    const preview=document.createElement('p');preview.className='policy-compare';
    btn.addEventListener('click',()=>{const proposed=chooseCapacityTransport(game,key);preview.textContent='Projected: '+previewMetrics(proposed)+' · Fund after purchase '+currency(proposed.councilBudget);ok.hidden=false;ok.onclick=()=>{game=proposed;persist();renderAll();openPanel('council');};});
    const ok=document.createElement('button');ok.type='button';ok.className='policy-action';ok.textContent='Confirm '+rule.name;ok.hidden=true;
-   investment.append(btn,preview,ok);
+   investment.append(btn,preview,ok);addBlockReason(investment,btn,actionBlockReason(game,rule.cost,2));
   }
  }
  const campaign=section('Local marketing','£5,000 and 1 action point for a two-month +8% footfall campaign.');
  const b=document.createElement('button');b.type='button';b.className='policy-action';b.textContent='Fund marketing · £5,000';b.disabled=challengeFinished(game)||game.councilBudget<MARKETING.cost||actionsRemaining(game)<1||(game.marketingUntil||0)>=game.month;
- b.addEventListener('click',()=>{if(actionsRemaining(game)<1)return alert('No council action points remain.');const proposed=startCapacityMarketing(game);const ok=confirm('Fund a two-month campaign for £5,000? Projected town footfall: '+townMetrics(proposed).footfall.toLocaleString('en-GB')+' visits.');if(ok){game=proposed;persist();renderAll();openPanel('council');}});campaign.append(b);
+ b.addEventListener('click',()=>{if(actionsRemaining(game)<1)return alert('No council action points remain.');const proposed=startCapacityMarketing(game);const ok=confirm('Fund a two-month campaign for £5,000? Projected town footfall: '+townMetrics(proposed).footfall.toLocaleString('en-GB')+' visits.');if(ok){game=proposed;persist();renderAll();openPanel('council');}});campaign.append(b);addBlockReason(campaign,b,(game.marketingUntil||0)>=game.month?'Campaign already active.':actionBlockReason(game,MARKETING.cost));
  const e=pendingEvent(game);if(e){const sec=section('Pending event',e.title+' — decide before advancing.');const btn=document.createElement('button');btn.className='policy-action';btn.textContent='Review event';btn.addEventListener('click',()=>openPanel('event'));sec.append(btn);}
  const footer=document.createElement('p');footer.className='grant-note';footer.textContent='Existing £5,000 grants remain available when inspecting individual shops. The new figures are provisional game-balancing assumptions.';c.append(footer);
 }
@@ -152,27 +155,28 @@ function renderGrantPanel(p){
  if(grant){const left=Math.max(0,grant.awardedMonth+IMPROVEMENT_GRANT.durationMonths-game.month);status.textContent=left?`${left} trading months of benefit remaining.`:'Grant completed; one grant per shop.';el.append(h,desc,status);return;}
  status.textContent='Council fund: '+currency(game.councilBudget);
  const b=document.createElement('button');b.type='button';b.textContent='Award £5,000 grant';b.disabled=challengeFinished(game)||game.councilBudget<IMPROVEMENT_GRANT.cost||actionsRemaining(game)<1;
- b.addEventListener('click',()=>{game=awardCapacityGrant(game,p);persist();renderAll();});el.append(h,desc,status,b);
+ b.addEventListener('click',()=>{game=awardCapacityGrant(game,p);persist();renderAll();});el.append(h,desc,status,b);addBlockReason(el,b,actionBlockReason(game,IMPROVEMENT_GRANT.cost));
 }
 function renderTenantPanel(p){
  const el=document.getElementById('tenant-section');el.replaceChildren();el.hidden=p.occupied;if(p.occupied)return;
  const h=document.createElement('h4');h.textContent='Choose a new tenant · 1 action point';
- const desc=document.createElement('p');desc.textContent='Three independent businesses have applied. Choose one: the council pays the same £12,000 fit-out, the shop opens immediately and starts trading next month. Its starting cash is private.';
+ const desc=document.createElement('p');desc.textContent='Condition: '+premiseCondition(game,p.id)+' · vacant for '+monthsVacant(game,p.id)+' months. Fit-outs become more expensive over time and vary by applicant requirements and standard business rates. The chosen shop opens immediately, trading next month.';
  el.append(h,desc);
  const choices=applicantsForUnit(game,p.id);
  for(const index of choices){
   const applicant=TENANT_TEMPLATES[index];
+  const fitout=tenantFitoutCost(game,p.id,index);
   const choice=document.createElement('div');choice.className='applicant-option';
   const name=document.createElement('strong');name.textContent=applicant.icon+' '+applicant.name+' — '+applicant.type;
   const about=document.createElement('p');about.textContent=applicant.description;
   const meta=document.createElement('small');meta.textContent='Typical sale '+currency(applicant.finance.averageSale)+' · Estimated '+applicant.finance.transactions+' monthly transactions · Business rates '+currency(applicant.finance.monthlyBusinessRates)+'/month (Standard)';
-  const button=document.createElement('button');button.type='button';button.textContent='Select '+applicant.name+' · '+currency(CHALLENGE.tenantFitout);
-  button.disabled=challengeFinished(game)||game.councilBudget<CHALLENGE.tenantFitout||actionsRemaining(game)<1;
+  const button=document.createElement('button');button.type='button';button.textContent='Select '+applicant.name+' · '+currency(fitout);
+  button.disabled=challengeFinished(game)||game.councilBudget<fitout||actionsRemaining(game)<1;
   button.addEventListener('click',()=>{
    try{game=openCapacityTenant(game,p.id,index);persist();renderAll();inspectPremise(p.id,false);openPanel('details');}
    catch(err){alert(err.message);}
   });
-  choice.append(name,about,meta,button);el.append(choice);
+  choice.append(name,about,meta,button);addBlockReason(choice,button,actionBlockReason(game,fitout));el.append(choice);
  }
  if(challengeFinished(game)){const note=document.createElement('p');note.textContent='The challenge has finished: no new tenants can open.';el.append(note);}
 }
@@ -197,7 +201,8 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
  const risks=occupiedPremises(game).map(p=>businessRiskStatus(p,game.cashByPremise[p.id]||0,game.ratesBand,game.latestResults.find(r=>r.premiseId===p.id),(game.lossStreaks||{})[p.id]||0));
  const struggling=risks.filter(r=>r.name==='Struggling').length,critical=risks.filter(r=>r.name==='Critical').length;
  const recent=game.lastClosures||[];
- document.getElementById('report-risks').textContent='Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
+ const thisMonth=game.history[game.history.length-1];
+ document.getElementById('report-risks').textContent='Town development: '+(thisMonth?.development||'No recorded development')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';

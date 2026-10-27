@@ -65,23 +65,27 @@ function openTenant(state,id,applicantIndex){
  const vacant=currentPremise(state,id);
  if(!vacant||vacant.occupied)throw Error('Only vacant premises can welcome tenants.');
  if(challengeFinished(state))throw Error('Challenge complete.');
- if(state.councilBudget<CHALLENGE.tenantFitout)throw Error('Insufficient regeneration funding.');
+ 
  const choices=applicantsForUnit(state,id);
  if(!Number.isInteger(applicantIndex)||!choices.includes(applicantIndex))throw Error('Choose one of the currently available applicants.');
  const template=TENANT_TEMPLATES[applicantIndex];
+ const fitout=tenantFitoutCost(state,id,applicantIndex);
+ if(state.councilBudget<fitout)throw Error('Insufficient regeneration funding.');
  if(occupiedPremises(state).some(p=>p.type===template.type))throw Error('A business in this category is already trading.');
  const p={...vacant,...template,id,occupied:true,side:vacant.side,finance:{...template.finance}};
  const applicantChoices={...(state.applicantChoices||{})};delete applicantChoices[id];
- return {...state,councilBudget:state.councilBudget-CHALLENGE.tenantFitout,applicantChoices,
+ return {...state,councilBudget:state.councilBudget-fitout,applicantChoices,
  businesses:{...state.businesses,[id]:p},cashByPremise:{...state.cashByPremise,[id]:p.finance.cash},lossStreaks:{...(state.lossStreaks||{}),[id]:0},
- opened:[...state.opened,{id,month:state.month,name:p.name,type:p.type}]};
+ opened:[...state.opened,{id,month:state.month,name:p.name,type:p.type,fitout}]};
 }
 function runChallengeMonth(state){
  if(challengeFinished(state))throw Error('Challenge already ended.');
  if(pendingEvent(state))throw Error('Resolve the council event first.');
  const band=state.nextRatesBand||state.ratesBand||'standard';
  const metrics=townMetrics(state);
- const results=occupiedPremises(state).map(p=>calculateMonthlyTrading(p,state.cashByPremise[p.id],state.month,state.grants,state.interventions,band,metrics));
+ const development=monthlyDevelopment(state);
+ const adjustedMetrics={...metrics,footfall:Math.max(0,Math.round(metrics.footfall*(1+development.footfall))),spendingPower:Math.max(0,Math.min(100,metrics.spendingPower+development.spendingPower))};
+ const results=occupiedPremises(state).map(p=>calculateMonthlyTrading(p,state.cashByPremise[p.id],state.month,state.grants,state.interventions,band,adjustedMetrics));
  const cashByPremise={...state.cashByPremise},businesses={...state.businesses},closed=[...state.closed],applicantChoices={...(state.applicantChoices||{})},lossStreaks={...(state.lossStreaks||{})},lastClosures=[];
  for(const r of results){
   cashByPremise[r.premiseId]=r.closingCash;
@@ -108,7 +112,7 @@ function runChallengeMonth(state){
  return {...state,month:state.month+1,councilBudget,ratesBand:band,nextRatesBand:band,
   lastRatesReceipt:ratesReceived,totalRatesReceived:(state.totalRatesReceived||0)+ratesReceived,lastServiceCost:serviceCost,totalServiceCost:(state.totalServiceCost||0)+serviceCost,
   cashByPremise,businesses,closed,applicantChoices,lossStreaks,lastClosures,latestResults:results,
-  history:[...state.history,{month:state.month,footfall:metrics.footfall,spendingPower:metrics.spendingPower,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),sales:monthlySales,expenses:monthlyExpenses,transactions:monthlyTransactions,stable,openings:(state.opened||[]).filter(o=>o.month===state.month).length,closures:lastClosures.length,rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget,shops:shopHistory}]};
+  history:[...state.history,{month:state.month,footfall:adjustedMetrics.footfall,spendingPower:adjustedMetrics.spendingPower,development:development.title,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),sales:monthlySales,expenses:monthlyExpenses,transactions:monthlyTransactions,stable,openings:(state.opened||[]).filter(o=>o.month===state.month).length,closures:lastClosures.length,rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget,shops:shopHistory}]};
 }
 function finalOutcome(state){const occupied=occupiedPremises(state).length;
  return {occupied,won:challengeFinished(state)&&occupied>=CHALLENGE.goalOccupied,
