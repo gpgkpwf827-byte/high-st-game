@@ -90,3 +90,6 @@ header{position:relative;padding-right:50px}.notification{position:absolute;righ
 .issue-card h4{margin:0 0 6px;font-size:14px}
 .issue-card p{font-size:12px;line-height:1.5;margin:4px 0}
 @media(max-width:390px){.quick-actions{gap:3px}.quick-actions button{font-size:9px}.shop-condition{font-size:8px}}
+
+/* Stage 6D recovery assessment */
+.recovery-results{display:grid;gap:8px;margin-top:12px}.recovery-result{border:1px solid #dce7dd;border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px}.recovery-result strong{font-size:13px}.recovery-result span{font-size:12px;color:#5b7465}

@@ -114,6 +114,19 @@ function runChallengeMonth(state){
   cashByPremise,businesses,closed,applicantChoices,lossStreaks,lastClosures,latestResults:results,
   history:[...state.history,{month:state.month,footfall:adjustedMetrics.footfall,spendingPower:adjustedMetrics.spendingPower,development:development.title,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),sales:monthlySales,expenses:monthlyExpenses,transactions:monthlyTransactions,stable,openings:(state.opened||[]).filter(o=>o.month===state.month).length,closures:lastClosures.length,rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget,shops:shopHistory}]};
 }
-function finalOutcome(state){const occupied=occupiedPremises(state).length;
- return {occupied,won:challengeFinished(state)&&occupied>=CHALLENGE.goalOccupied,
- budget:state.councilBudget,opened:state.opened.length,closures:state.closed.length};}
+/* Stage 6D: balanced recovery, based on the last COMPLETED trading month. */
+const RECOVERY_GOALS=Object.freeze({occupied:10,footfall:10000,stableShare:.70});
+function finalOutcome(state){
+ const occupied=occupiedPremises(state).length;
+ const last=(state.history||[]).at(-1)||null;
+ const footfall=Number.isFinite(last?.footfall)?last.footfall:null;
+ const stable=Number.isFinite(last?.stable)?last.stable:null;
+ const stableRequired=Math.ceil(occupied*RECOVERY_GOALS.stableShare);
+ const checks={occupancy:occupied>=RECOVERY_GOALS.occupied,
+  footfall:footfall!==null&&footfall>=RECOVERY_GOALS.footfall,
+  sustainability:stable!==null&&stable>=stableRequired};
+ const met=Object.values(checks).filter(Boolean).length;
+ return {occupied,footfall,stable,stableRequired,checks,met,
+  won:challengeFinished(state)&&met===3,
+  budget:state.councilBudget,opened:state.opened.length,closures:state.closed.length};
+}

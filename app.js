@@ -219,7 +219,22 @@ function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';
  const actions=document.createElement('div');actions.className='event-actions';for(const fund of [true,false]){const b=document.createElement('button');b.type='button';b.className=fund?'primary':'';b.textContent=fund?'Fund '+currency(e.cost):'Decline — £0';b.disabled=fund&&game.councilBudget<e.cost;b.addEventListener('click',()=>{game=decideEvent(game,fund);persist();renderAll();closePanel();});actions.append(b);}el.append(h,p,actions);
 }
-function renderFinal(){const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;const o=finalOutcome(game);const h=document.createElement('h3');h.textContent=o.won?'Challenge complete — high street recovered!':'Challenge complete — target missed';const p=document.createElement('p');p.textContent=`Month 12: ${o.occupied}/12 premises occupied (goal: 10). Council fund: ${currency(o.budget)}. Tenant openings: ${o.opened}. Closures: ${o.closures}. Rates collected since this version: ${currency(game.totalRatesReceived||0)}.`;el.append(h,p);}
+function renderFinal(){
+ const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;
+ const o=finalOutcome(game),heading=document.createElement('h3');
+ heading.textContent=o.won?'Challenge complete — balanced recovery achieved!':`Challenge complete — ${o.met} of 3 recovery targets met`;
+ el.append(heading);
+ const intro=document.createElement('p');intro.textContent='The final assessment uses the last completed trading month, not a forecast. All three objectives are required for a full victory.';el.append(intro);
+ const lines=[
+ ['Occupied premises',o.occupied+'/12','At least 10',o.checks.occupancy],
+ ['Monthly footfall',o.footfall===null?'Not recorded':o.footfall.toLocaleString('en-GB'),'At least 10,000 visits',o.checks.footfall],
+ ['Stable trading businesses',o.stable===null?'Not recorded':o.stable+' of '+o.occupied,'At least '+o.stableRequired+' of '+o.occupied+' (70%)',o.checks.sustainability]
+ ];
+ const grid=document.createElement('div');grid.className='recovery-results';
+ for(const [label,value,required,passed] of lines){const item=document.createElement('div');item.className='recovery-result';const name=document.createElement('strong');name.textContent=(passed?'✓ ':'✕ ')+label;const detail=document.createElement('span');detail.textContent=value+' · Target: '+required;item.append(name,detail);grid.append(item);}el.append(grid);
+ const p=document.createElement('p');p.textContent='Council fund: '+currency(o.budget)+'. Tenant openings: '+o.opened+'. Closures: '+o.closures+'. Business rates collected: '+currency(game.totalRatesReceived||0)+'.';el.append(p);
+}
+
 function renderIssues(){
  const el=document.getElementById('issues-content');el.replaceChildren();
  const intro=document.createElement('p');intro.textContent='Current council effects and the most recently recorded town development. A development applies for one trading month, not indefinitely.';el.append(intro);
