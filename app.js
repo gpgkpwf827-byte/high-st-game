@@ -19,7 +19,7 @@ game=normaliseGame(game);
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
-const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',performance:'Performance',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
+const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',issues:'Current issues',performance:'Performance',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
 function openPanel(id){
  activePanel=id;
  for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==id;
@@ -124,11 +124,18 @@ function renderShops(){for(const side of ['north','south']){
  const container=document.getElementById(side);container.replaceChildren();
  currentPremises(game).filter(p=>p.side===side).forEach(p=>{
   const button=document.createElement('button');button.type='button';button.className='shop'+(p.occupied?'':' vacant');
-  button.style.setProperty('--shop-color',p.colour);button.dataset.id=p.id;
+  const health=p.occupied?businessRiskStatus(p,game.cashByPremise[p.id]||0,game.ratesBand,game.latestResults.find(r=>r.premiseId===p.id),(game.lossStreaks||{})[p.id]||0).name:'Vacant';
+  const statusColour={Stable:'#39936f',Struggling:'#d5a03b',Critical:'#c65c56',Vacant:'#899690'};
+  button.style.setProperty('--shop-color',statusColour[health]);button.dataset.id=p.id;
+  button.classList.add('status-'+health.toLowerCase());
   button.setAttribute('aria-label',`Inspect ${p.name}, ${p.occupied?'occupied':'vacant'}`);
   button.setAttribute('aria-pressed',String(selectedId===p.id));
   if(selectedId===p.id)button.classList.add('selected');
   button.innerHTML=`<div class="roof"></div><div class="front"><span class="shop-icon">${p.icon}</span></div><span class="shop-name">${p.name}</span><span class="shop-type">${p.type}</span>`;
+  const indicator=document.createElement('span');indicator.className='shop-condition';
+  indicator.textContent=p.occupied?health:premiseCondition(game,p.id)+' · '+monthsVacant(game,p.id)+'m vacant';
+  button.append(indicator);
+  button.setAttribute('aria-label',`Inspect ${p.name}, ${p.occupied?health+' business':'vacant, '+premiseCondition(game,p.id)+', '+monthsVacant(game,p.id)+' months'}`);
   button.addEventListener('click',()=>inspectPremise(p.id,true));container.append(button);
  });}}
 function financeLine(label,value){const r=document.createElement('div');r.className='finance-line';const a=document.createElement('span');a.textContent=label;const b=document.createElement('strong');b.textContent=value;r.append(a,b);return r;}
@@ -162,6 +169,10 @@ function renderTenantPanel(p){
  const h=document.createElement('h4');h.textContent='Choose a new tenant · 1 action point';
  const desc=document.createElement('p');desc.textContent='Condition: '+premiseCondition(game,p.id)+' · vacant for '+monthsVacant(game,p.id)+' months. Fit-outs become more expensive over time and vary by applicant requirements and standard business rates. The chosen shop opens immediately, trading next month.';
  el.append(h,desc);
+ const prop=document.createElement('div');prop.className='property-summary';
+ const age=monthsVacant(game,p.id),ageCost=Math.min(age,PROPERTY_COSTS.maxAge)*PROPERTY_COSTS.perVacantMonth;
+ prop.textContent=`Vacancy age: ${age} months · Condition: ${premiseCondition(game,p.id)} · Deterioration surcharge: ${currency(ageCost)}. This charge reaches its cap after ${PROPERTY_COSTS.maxAge} months.`;
+ el.append(prop);
  const choices=applicantsForUnit(game,p.id);
  for(const index of choices){
   const applicant=TENANT_TEMPLATES[index];
@@ -209,8 +220,36 @@ function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(
  const actions=document.createElement('div');actions.className='event-actions';for(const fund of [true,false]){const b=document.createElement('button');b.type='button';b.className=fund?'primary':'';b.textContent=fund?'Fund '+currency(e.cost):'Decline — £0';b.disabled=fund&&game.councilBudget<e.cost;b.addEventListener('click',()=>{game=decideEvent(game,fund);persist();renderAll();closePanel();});actions.append(b);}el.append(h,p,actions);
 }
 function renderFinal(){const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;const o=finalOutcome(game);const h=document.createElement('h3');h.textContent=o.won?'Challenge complete — high street recovered!':'Challenge complete — target missed';const p=document.createElement('p');p.textContent=`Month 12: ${o.occupied}/12 premises occupied (goal: 10). Council fund: ${currency(o.budget)}. Tenant openings: ${o.opened}. Closures: ${o.closures}. Rates collected since this version: ${currency(game.totalRatesReceived||0)}.`;el.append(h,p);}
+function renderIssues(){
+ const el=document.getElementById('issues-content');el.replaceChildren();
+ const intro=document.createElement('p');intro.textContent='Current council effects and the most recently recorded town development. A development applies for one trading month, not indefinitely.';el.append(intro);
+ const section=(title,lines)=>{const box=document.createElement('div');box.className='issue-card';const h=document.createElement('h4');h.textContent=title;box.append(h);for(const line of lines){const p=document.createElement('p');p.textContent=line;box.append(p);}el.append(box);};
+ const cp=councilPolicies(game);
+ const cleaning=SERVICES.cleaning[cp.cleaning],lighting=SERVICES.lighting[cp.lighting];
+ section('Council services — active now',[
+  `Cleaning: ${cp.cleaning} · Attractiveness +${cleaning.attractiveness} points`,
+  `Lighting: ${cp.lighting} · Attractiveness +${lighting.attractiveness} points · Footfall ${Math.round(lighting.footfall*100)>0?'+':''}${Math.round(lighting.footfall*100)}%`,
+  `Service costs: ${currency(serviceCosts(game))}/month`
+ ]);
+ const active=[];
+ if(game.transportChoice){const t=TRANSPORT[game.transportChoice];active.push(`${game.transportChoice==='bus'?'Improved buses':'Free parking'}: Footfall +${Math.round(t.footfall*100)}%${t.attractiveness?' · Attractiveness +'+t.attractiveness+' points':''}`);}
+ if((game.marketingUntil||0)>=game.month)active.push(`Marketing: Footfall +${Math.round(MARKETING.footfall*100)}% · active through Month ${game.marketingUntil}`);
+ if(active.length)section('Investments — active now',active);
+ const prior=game.history[game.history.length-1];
+ if(prior){
+  const dev=TOWN_DEVELOPMENTS.find(x=>x.title===prior.development);
+  const sign=n=>n>0?'+':'';
+  const lines=[`Month ${prior.month}: ${prior.development||'No development recorded'}`];
+  if(dev){lines.push(`Footfall: ${sign(dev.footfall*100)}${Math.round(dev.footfall*100)}% during Month ${prior.month}`);
+   lines.push(`Spending Power: ${sign(dev.spendingPower)}${dev.spendingPower} points during Month ${prior.month}`);}
+  lines.push('This development is historical; it is not automatically active in the current month.');
+  section('Latest town development — previous month',lines);
+ }else section('Town developments',['No completed month yet. Developments are revealed when you advance time.']);
+ const e=pendingEvent(game);if(e)section('Decision awaiting your response',[`Month ${game.month}: ${e.title}. Use the notification bell to review it.`]);
+ const metrics=townMetrics(game);section('Current town estimate',[`Footfall: ${metrics.footfall.toLocaleString('en-GB')} visits · Attractiveness: ${metrics.attractiveness.toFixed(0)}/100`,`Commercial Vitality: ${metrics.vitality.toFixed(0)}/100. Vitality contributes to footfall and attractiveness relative to the starting town.`]);
+}
 function renderAll(){
- renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);
+ renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);renderIssues();
  if(selectedId!==null)inspectPremise(selectedId,false);
  if(activePanel){
   for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==activePanel;
@@ -224,6 +263,7 @@ document.getElementById('notification').addEventListener('click',()=>openPanel('
 document.getElementById('reopen-event').addEventListener('click',()=>openPanel('event'));
 document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
 document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
+document.getElementById('show-issues').addEventListener('click',()=>{renderIssues();openPanel('issues');});
 document.getElementById('show-performance').addEventListener('click',()=>{renderPerformance(game);openPanel('performance');});
 document.getElementById('show-report').addEventListener('click',()=>{
  if(!game.latestResults.length){alert('The first monthly report will be available after you advance a month.');return;}

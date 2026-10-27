@@ -76,3 +76,17 @@ header{position:relative;padding-right:50px}.notification{position:absolute;righ
 .capacity-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:#e5efe5;color:#2a604d;padding:9px 12px;border:1px solid #c9dbca;border-radius:12px;margin-bottom:8px;font-size:12px}.capacity-bar strong{font-weight:800}.capacity-bar span{font-weight:750}.policy-preview p{line-height:1.4}
 
 .unavailable-reason{font-size:11px!important;color:#95613b!important;margin:4px 0 10px!important;line-height:1.4!important}
+
+/* Stage 6C.1 — compact visibility and financial status */
+.quick-actions{grid-template-columns:repeat(3,minmax(0,1fr))}
+.quick-actions button{font-size:10px;padding:7px 2px;overflow-wrap:anywhere}
+.shop-condition{display:block;font-size:9px;font-weight:800;line-height:1.2;margin-top:3px;min-height:21px;color:#263c31;overflow-wrap:anywhere}
+.shop.status-stable .shop-condition{color:#267351}
+.shop.status-struggling .shop-condition{color:#916311}
+.shop.status-critical .shop-condition{color:#a53935}
+.shop.status-vacant .shop-condition{color:#596961}
+.property-summary{background:#eff3eb;border:1px solid #d9e4d4;border-radius:10px;padding:10px;font-size:12px;line-height:1.5;margin:9px 0}
+.issue-card{background:#f7f9f4;border:1px solid #dce4d9;border-radius:12px;padding:12px;margin:10px 0}
+.issue-card h4{margin:0 0 6px;font-size:14px}
+.issue-card p{font-size:12px;line-height:1.5;margin:4px 0}
+@media(max-width:390px){.quick-actions{gap:3px}.quick-actions button{font-size:9px}.shop-condition{font-size:8px}}
