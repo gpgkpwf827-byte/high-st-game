@@ -56,3 +56,19 @@ body.modal-active{overflow:hidden}
 
 /* Stage 5 council controls and reopenable notifications */
 header{position:relative;padding-right:50px}.notification{position:absolute;right:0;top:0;border:1px solid #d4dfd4;background:white;border-radius:12px;min-width:43px;min-height:43px;font-size:19px;cursor:pointer}.notification span{position:absolute;top:-6px;right:-4px;background:#a74434;color:white;font-size:11px;border-radius:99px;min-width:19px;padding:2px}.pending-banner{padding:11px;background:#fff4df;border:1px solid #dbb875;border-radius:12px;margin-bottom:10px;display:flex;flex-wrap:wrap;align-items:center;gap:8px;font-size:12px}.pending-banner span{flex:1}.pending-banner button,.policy-action{background:#2c7355;color:white;border:0;border-radius:9px;padding:11px;min-height:42px;font-weight:700;cursor:pointer}.policy-preview{background:#eaf3ea;border:1px solid #cadfcc;border-radius:12px;padding:12px;margin:9px 0}.policy-preview p{margin:7px 0 0!important}.policy-section{padding:12px 0;border-top:1px solid #e2e9dd}.policy-section h4{margin:3px 0}.policy-section p{margin:5px 0;font-size:12px}.policy-options{display:flex;flex-wrap:wrap;gap:7px;margin:8px 0}.policy-options button{padding:10px;border-radius:9px;border:1px solid #b7c9b9;background:white;font-size:12px;cursor:pointer;min-height:40px;text-transform:capitalize}.policy-options button.chosen{background:#d7eadd;border-color:#39785b;font-weight:800}.policy-action{display:block;margin:8px 0;width:100%}.policy-action:disabled{opacity:.5}.policy-compare{font-weight:600;color:#2c6953!important}button[hidden]{display:none!important}
+
+/* Milestone 1E Stage 6A — historical performance dashboard */
+.quick-actions{grid-template-columns:repeat(4,minmax(0,1fr))}
+.quick-actions button{font-size:10px;padding:9px 2px}
+.perf-controls{display:grid;grid-template-columns:1fr;gap:6px;margin:12px 0}
+.perf-controls label{font-size:12px;font-weight:750;color:#4f685d}
+.perf-controls select{width:100%;min-height:42px;border-radius:9px;border:1px solid #cad8cf;background:#fff;padding:9px;color:#213e31}
+.perf-summary{background:#edf4eb;border-radius:11px;padding:12px;margin:12px 0;font-weight:700}
+.perf-chart{background:#fff;border:1px solid #d7e1d5;border-radius:13px;padding:7px 4px;overflow:hidden}
+.perf-chart svg{display:block;width:100%;height:auto;max-height:270px}
+.perf-chart text{font-family:system-ui,-apple-system,sans-serif;font-size:10px;fill:#4b6558}
+.perf-legend{font-size:11px;color:#617469;margin:8px 3px}
+.perf-table{width:100%;border-collapse:collapse;font-size:12px;margin-top:12px}
+.perf-table th,.perf-table td{border-bottom:1px solid #e3e9df;padding:8px 4px;text-align:right}
+.perf-table th:first-child,.perf-table td:first-child{text-align:left}
+.perf-empty{font-size:13px;color:#708078;margin:15px 0}

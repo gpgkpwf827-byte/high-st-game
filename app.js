@@ -19,7 +19,7 @@ game=normaliseGame(game);
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
-const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
+const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',performance:'Performance',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
 function openPanel(id){
  activePanel=id;
  for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==id;
@@ -203,7 +203,7 @@ function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(
 }
 function renderFinal(){const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;const o=finalOutcome(game);const h=document.createElement('h3');h.textContent=o.won?'Challenge complete — high street recovered!':'Challenge complete — target missed';const p=document.createElement('p');p.textContent=`Month 12: ${o.occupied}/12 premises occupied (goal: 10). Council fund: ${currency(o.budget)}. Tenant openings: ${o.opened}. Closures: ${o.closures}. Rates collected since this version: ${currency(game.totalRatesReceived||0)}.`;el.append(h,p);}
 function renderAll(){
- renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();
+ renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);
  if(selectedId!==null)inspectPremise(selectedId,false);
  if(activePanel){
   for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==activePanel;
@@ -217,6 +217,7 @@ document.getElementById('notification').addEventListener('click',()=>openPanel('
 document.getElementById('reopen-event').addEventListener('click',()=>openPanel('event'));
 document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
 document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
+document.getElementById('show-performance').addEventListener('click',()=>{renderPerformance(game);openPanel('performance');});
 document.getElementById('show-report').addEventListener('click',()=>{
  if(!game.latestResults.length){alert('The first monthly report will be available after you advance a month.');return;}
  openPanel('report');

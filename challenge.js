@@ -98,10 +98,17 @@ function runChallengeMonth(state){
  const serviceCost=serviceCosts(state);
  const councilBudget=state.councilBudget+ratesReceived-serviceCost;
  const occupancy=PREMISES.filter(p=>(businesses[p.id]||p).occupied).length;
+ const monthlySales=results.reduce((s,r)=>s+r.revenue,0);
+ const monthlyExpenses=results.reduce((s,r)=>s+r.totalExpenses,0);
+ const monthlyTransactions=results.reduce((s,r)=>s+r.transactions,0);
+ const afterState={...state,businesses,cashByPremise,lossStreaks};
+ const health=occupiedPremises(afterState).map(p=>businessRiskStatus(p,cashByPremise[p.id]||0,band,results.find(r=>r.premiseId===p.id),lossStreaks[p.id]||0));
+ const stable=health.filter(h=>h.name==='Stable').length;
+ const shopHistory=results.map(r=>({id:r.premiseId,name:currentPremise(state,r.premiseId).name,revenue:r.revenue,profit:r.profit,transactions:r.transactions,cash:r.closingCash}));
  return {...state,month:state.month+1,councilBudget,ratesBand:band,nextRatesBand:band,
   lastRatesReceipt:ratesReceived,totalRatesReceived:(state.totalRatesReceived||0)+ratesReceived,lastServiceCost:serviceCost,totalServiceCost:(state.totalServiceCost||0)+serviceCost,
   cashByPremise,businesses,closed,applicantChoices,lossStreaks,lastClosures,latestResults:results,
-  history:[...state.history,{month:state.month,footfall:metrics.footfall,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget}]};
+  history:[...state.history,{month:state.month,footfall:metrics.footfall,spendingPower:metrics.spendingPower,vitality:metrics.vitality,attractiveness:metrics.attractiveness,occupancy,profit:results.reduce((s,r)=>s+r.profit,0),sales:monthlySales,expenses:monthlyExpenses,transactions:monthlyTransactions,stable,openings:(state.opened||[]).filter(o=>o.month===state.month).length,closures:lastClosures.length,rates:ratesReceived,serviceCost,netCouncil:ratesReceived-serviceCost,ratesBand:band,budget:councilBudget,shops:shopHistory}]};
 }
 function finalOutcome(state){const occupied=occupiedPremises(state).length;
  return {occupied,won:challengeFinished(state)&&occupied>=CHALLENGE.goalOccupied,
