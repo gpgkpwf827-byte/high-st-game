@@ -1,9 +1,7 @@
-High Street — Stage 7D.2 interface clean-up
+HIGH STREET — Stage 8A.1 Main Dashboard & Navigation
 
-Replace ONLY index.html in your GitHub repository.
+Replace index.html, app.js, stage2.css in the GitHub repository. Keep every other file untouched.
 
-This removes the obsolete "Monthly trading" section left underneath the street when the Advance button was moved to its floating position.
+Changes: four navigation buttons (Council, Economy, Performance, Alerts), Economy hub contains Local Economy and Current Issues; Alerts hub contains Notifications, Monthly Report and Challenge. Existing header bell remains a direct shortcut to Notifications. Compact real-data recovery indicators and month-to-month historical arrows/sparklines. Economy and gameplay untouched.
 
-The existing floating Advance button and current cache-busting CSS/JS references remain unchanged. No JavaScript, CSS, economic logic, or save structure is modified.
-
-Test on iPhone: old Monthly trading block is gone; floating Advance remains visible during vertical scroll; shopfront street scrolling works; decision-required events still block advancement.
+Refresh Safari and verify new header/footer and new interface. Asset URLs are versioned (?v=8a1-ui) to avoid stale Safari caches. Old saves remain compatible.

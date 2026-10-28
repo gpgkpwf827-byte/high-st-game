@@ -1,15 +1,14 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>High Street · Stage 7D</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="stage2.css?v=7d1-layoutfix"></head><body>
-<main class="shell"><header><div><div class="eyebrow">Council regeneration simulator</div><h1>High Street<span style="color:#65a079">.</span></h1></div><span class="phase">Stage 7D</span><button type="button" id="notification" class="notification" aria-label="Notifications">🔔 <span id="notification-count" hidden>0</span></button></header>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><title>High Street · Stage 8A.1</title><link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="stage2.css?v=8a1-ui"></head><body>
+<main class="shell"><header><div><div class="eyebrow">Council regeneration simulator</div><h1>High Street<span style="color:#65a079">.</span></h1></div><span class="phase">Stage 8A.1</span><button type="button" id="notification" class="notification" aria-label="Notifications">🔔 <span id="notification-count" hidden>0</span></button></header>
 <section class="capacity-bar" aria-live="polite"><strong>🏛️ Council capacity</strong><span id="capacity-points">3 / 3 actions remaining</span></section>
-<section class="stats" aria-label="Town overview"><div class="stat"><small>Council fund</small><b id="budget">—</b></div><div class="stat"><small>Occupied</small><b id="occupancy">—</b></div><div class="stat"><small>Month</small><b id="month">—</b></div></section>
+<section class="stats overview-stats" aria-label="Town at a glance"><div class="stat"><small>💷 Council fund</small><b id="budget">—</b></div><div class="stat"><small>🏪 Occupied</small><b id="occupancy">—</b></div><div class="stat"><small>📅 Month</small><b id="month">—</b></div></section>
 <section class="town-metrics" id="town-metrics" aria-label="Town economy"></section>
-<nav class="quick-actions" aria-label="Game options">
-<button type="button" id="show-council">⚖️ Council management</button>
-<button type="button" id="show-report">📰 Monthly report</button>
-<button type="button" id="show-performance">📈 Performance</button>
-<button type="button" id="show-economy">💷 Local economy</button>
-<button type="button" id="show-issues">⚠️ Current issues</button>
-<button type="button" id="show-goal">🎯 Challenge</button>
+<section class="recovery-strip" id="recovery-strip" aria-label="Current recovery objectives"></section>
+<nav class="quick-actions grouped-nav" aria-label="Game options">
+<button type="button" id="show-council"><span aria-hidden="true">🏛️</span><span>Council</span></button>
+<button type="button" id="show-economy"><span aria-hidden="true">💷</span><span>Economy</span></button>
+<button type="button" id="show-performance"><span aria-hidden="true">📈</span><span>Performance</span></button>
+<button type="button" id="show-alerts"><span aria-hidden="true">🔔</span><span>Alerts</span></button>
 </nav>
 <div id="pending-banner" class="pending-banner" hidden><strong>⚠ Council decision required</strong><span id="pending-message"></span><button type="button" id="reopen-event">Review decision</button></div>
 <div class="section-head"><h2>Explore the street</h2><span>12 premises</span></div>
@@ -20,11 +19,11 @@
   <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1">
     <div class="modal-bar"><strong id="modal-title">High Street</strong><button type="button" class="modal-dismiss" id="dismiss-modal" aria-label="Close panel">×</button></div>
     <div class="modal-scroll">
-    <section class="panel" id="notifications" hidden></section>
+    <section class="panel" id="notifications" hidden></section><section class="panel" id="economy-hub" hidden><h3>💷 Town economy</h3><p class="hub-intro">Explore local conditions and what is affecting your town.</p><div class="hub-actions"><button type="button" id="hub-local-economy">Local economy <small>Employment, earnings and living costs</small></button><button type="button" id="hub-issues">Current issues <small>Policies and developments affecting the town</small></button></div></section>
 <section class="panel" id="local-economy-panel" hidden><h3>Local economy</h3><div id="local-economy-content"></div></section>
 <section class="panel" id="issues" hidden><h3>Current issues & influences</h3><div id="issues-content"></div></section>
 <section class="panel" id="performance" hidden><h3>Town performance</h3><p>Track the town and individual shops across completed months.</p><div class="perf-controls"><label for="perf-metric">Metric</label><select id="perf-metric"></select><label for="perf-shop">Business</label><select id="perf-shop"></select></div><div id="perf-summary" class="perf-summary"></div><div id="perf-chart" class="perf-chart"></div><div id="perf-data"></div></section>
-    <section class="panel" id="goal-panel" hidden><h3>12-month challenge</h3><p>Finish Month 12 with <b>10 of 12 premises occupied</b>, <b>10,000 monthly visits</b> and <b>70% of trading businesses financially Stable</b>. All three targets must be met. The final assessment uses completed Month 12 results.</p><button type="button" id="reset" class="reset">Restart challenge</button></section>
+    <section class="panel" id="alerts-hub" hidden><h3>🔔 Alerts & updates</h3><p class="hub-intro">Notifications, your latest month and the recovery challenge.</p><div class="hub-actions"><button type="button" id="hub-notifications">Notifications <small>Decisions, opportunities and completed results</small></button><button type="button" id="hub-report">Monthly report <small>Trading and council finance summary</small></button><button type="button" id="hub-challenge">Recovery objectives <small>Targets and restart options</small></button></div></section><section class="panel" id="goal-panel" hidden><h3>12-month challenge</h3><p>Finish Month 12 with <b>10 of 12 premises occupied</b>, <b>10,000 monthly visits</b> and <b>70% of trading businesses financially Stable</b>. All three targets must be met. The final assessment uses completed Month 12 results.</p><button type="button" id="reset" class="reset">Restart challenge</button></section>
     <section class="panel" id="council" aria-label="Council business rates policy"></section>
 <section class="panel event-panel" id="event" hidden aria-live="polite"></section><section class="panel" id="final" hidden aria-live="polite"></section>
 <section class="panel" id="report" hidden aria-live="polite"><h3>Month <span id="report-month"></span> trading report</h3><div class="details"><div class="detail"><small>Combined operating profit</small><strong id="report-profit"></strong></div><div class="detail"><small>Business rates expense</small><strong id="report-rates"></strong></div><div class="detail"><small>Council rates received</small><strong id="report-receipts"></strong></div><div class="detail"><small>Rates policy applied</small><strong id="report-band"></strong></div><div class="detail"><small>Council service costs</small><strong id="report-services"></strong></div><div class="detail"><small>Council fund after receipts and services</small><strong id="report-budget"></strong></div></div><div id="report-risks" class="note"></div></section>
@@ -32,4 +31,4 @@
     </div>
   </div>
 </div>
-<div class="footer">High Street · Stage 7D · £0 prototype</div></main><script src="data.js"></script><script src="rates.js"></script><script src="grants.js"></script><script src="economy.js"></script><script src="simulation.js"></script><script src="local-economy.js"></script><script src="businesses.js"></script><script src="council.js"></script><script src="strategic-opportunities.js"></script><script src="challenge.js"></script><script src="economic-actions.js"></script><script src="performance.js"></script><script src="capacity.js"></script><script src="property.js"></script><script src="developments.js"></script><script src="app.js?v=7d1-layoutfix"></script></body></html>
+<div class="footer">High Street · Stage 8A.1 · £0 prototype</div></main><script src="data.js"></script><script src="rates.js"></script><script src="grants.js"></script><script src="economy.js"></script><script src="simulation.js"></script><script src="local-economy.js"></script><script src="businesses.js"></script><script src="council.js"></script><script src="strategic-opportunities.js"></script><script src="challenge.js"></script><script src="economic-actions.js"></script><script src="performance.js"></script><script src="capacity.js"></script><script src="property.js"></script><script src="developments.js"></script><script src="app.js?v=8a1-ui"></script></body></html>

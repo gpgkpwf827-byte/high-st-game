@@ -21,7 +21,7 @@ if(!Array.isArray(game.seenStrategicOffers))game.seenStrategicOffers=[];
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
-const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',opportunities:'Strategic opportunities',issues:'Current issues',performance:'Performance','local-economy-panel':'Local economy',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
+const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',opportunities:'Strategic opportunities',issues:'Current issues',performance:'Performance','local-economy-panel':'Local economy',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge','economy-hub':'Economy','alerts-hub':'Alerts'};
 function openPanel(id){
  activePanel=id;
  for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==id;
@@ -45,14 +45,44 @@ function renderStats(){
  document.getElementById('advance').disabled=challengeFinished(game);
  renderNotificationBadge();
 }
-function renderMetrics(){
- const m=townMetrics(game),el=document.getElementById('town-metrics');
- el.replaceChildren();
- for(const [name,value,explain] of [['Footfall',m.footfall.toLocaleString('en-GB'),'Monthly visits'],['Spending power',m.spendingPower.toFixed(0)+'/100','Local economy'],['Attractiveness',m.attractiveness.toFixed(0)+'/100','Shopping environment'],['Commercial vitality',m.vitality.toFixed(0)+'/100','Occupancy · diversity · health']]){
-  const card=document.createElement('div');card.className='metric-card';
-  const a=document.createElement('small');a.textContent=name;const b=document.createElement('strong');b.textContent=value;const c=document.createElement('small');c.textContent=explain;card.append(a,b,c);el.append(card);
- }
+function metricTrend(key, current, inverse=false){
+ const history=game.history||[];
+ const previous=history.length>=2?history[history.length-2]:null;
+ const latest=history.at(-1)||null;
+ if(!latest||!previous||!Number.isFinite(latest[key])||!Number.isFinite(previous[key]))return {text:'—',cls:'neutral',points:[]};
+ const delta=latest[key]-previous[key];
+ const sign=delta>0?'+':'';
+ const good=inverse?delta<0:delta>0;
+ const text=Math.abs(delta)<.05?'→ No change':(delta>0?'↑ ':'↓ ')+sign+(key==='footfall'?Math.round(delta).toLocaleString('en-GB'):delta.toFixed(1));
+ const points=history.slice(-6).map(row=>row[key]).filter(Number.isFinite);
+ return {text,cls:Math.abs(delta)<.05?'neutral':good?'positive':'negative',points};
 }
+function makeSparkline(values){
+ if(values.length<2)return null;
+ const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 120 27');svg.setAttribute('class','mini-sparkline');svg.setAttribute('role','img');svg.setAttribute('aria-label','Recent monthly trend');
+ const low=Math.min(...values),high=Math.max(...values),range=high-low||1;
+ const line=document.createElementNS('http://www.w3.org/2000/svg','polyline');line.setAttribute('fill','none');line.setAttribute('stroke','currentColor');line.setAttribute('stroke-width','2.5');line.setAttribute('stroke-linecap','round');line.setAttribute('stroke-linejoin','round');line.setAttribute('points',values.map((v,i)=>`${3+i*114/(values.length-1)},${23-(v-low)/range*19}`).join(' '));svg.append(line);return svg;
+}
+function renderMetrics(){
+ const m=townMetrics(game),el=document.getElementById('town-metrics');el.replaceChildren();
+ for(const [name,value,key,explain] of [['👣 Footfall',m.footfall.toLocaleString('en-GB'),'footfall','Monthly visits'],['💷 Spending',m.spendingPower.toFixed(1)+'/100','underlyingSpendingPower','Spending Power'],['✨ Appeal',m.attractiveness.toFixed(0)+'/100','attractiveness','Town Attractiveness'],['🏬 Vitality',m.vitality.toFixed(0)+'/100','vitality','Commercial Vitality']]){
+  const card=document.createElement('div');card.className='metric-card';
+  const a=document.createElement('small');a.textContent=name;const b=document.createElement('strong');b.textContent=value;
+  const trend=metricTrend(key,m[key]);const t=document.createElement('span');t.className='metric-trend '+trend.cls;t.textContent=trend.text;t.title='Change between the two most recently completed months';
+  card.append(a,b,t);const spark=makeSparkline(trend.points);if(spark)card.append(spark);el.append(card);
+ }
+ renderRecoveryStrip(m);
+}
+function renderRecoveryStrip(m){
+ const el=document.getElementById('recovery-strip');el.replaceChildren();
+ const occupied=occupiedPremises(game).length,last=(game.history||[]).at(-1);
+ const stable=last&&Number.isFinite(last.stable)?last.stable:null;
+ const ratio=stable===null?null:occupied?100*stable/occupied:0;
+ const h=document.createElement('div');h.className='recovery-title';h.innerHTML='<strong>🎯 Recovery targets</strong><small>Current position · not a guaranteed Month 12 result</small>';el.append(h);
+ const targets=[['Occupancy',occupied+' / 12',occupied>=10],['Footfall',m.footfall.toLocaleString('en-GB'),m.footfall>=10000],['Stable businesses',ratio===null?'After Month 1':ratio.toFixed(0)+'%',ratio===null?null:ratio>=70]];
+ for(const [name,value,pass] of targets){const item=document.createElement('div');item.className='recovery-item '+(pass===null?'unknown':pass?'met':'unmet');const marker=document.createElement('span');marker.textContent=pass===null?'•':pass?'✓':'○';const label=document.createElement('span');label.textContent=name;const val=document.createElement('strong');val.textContent=value;item.append(marker,label,val);el.append(item);}
+}
+
 function showOffer(type){
  focusedOfferType=type;
  renderOpportunities();
@@ -445,11 +475,16 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)close
 document.getElementById('notification').addEventListener('click',()=>openPanel('notifications'));
 document.getElementById('reopen-event').addEventListener('click',()=>openPanel('event'));
 document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
-document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
-document.getElementById('show-issues').addEventListener('click',()=>{renderIssues();openPanel('issues');});
-document.getElementById('show-economy').addEventListener('click',()=>{renderLocalEconomy();openPanel('local-economy-panel');});
+
+
+document.getElementById('show-economy').addEventListener('click',()=>openPanel('economy-hub'));
+document.getElementById('hub-local-economy').addEventListener('click',()=>{renderLocalEconomy();openPanel('local-economy-panel');});
+document.getElementById('hub-issues').addEventListener('click',()=>{renderIssues();openPanel('issues');});
+document.getElementById('show-alerts').addEventListener('click',()=>openPanel('alerts-hub'));
+document.getElementById('hub-notifications').addEventListener('click',()=>openPanel('notifications'));
+document.getElementById('hub-challenge').addEventListener('click',()=>openPanel('goal-panel'));
 document.getElementById('show-performance').addEventListener('click',()=>{renderPerformance(game);openPanel('performance');});
-document.getElementById('show-report').addEventListener('click',()=>{
+document.getElementById('hub-report').addEventListener('click',()=>{
  if(!game.latestResults.length){alert('The first monthly report will be available after you advance a month.');return;}
  openPanel('report');
 });
