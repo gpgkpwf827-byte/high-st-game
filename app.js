@@ -14,8 +14,10 @@ function readGame(){
  return startingGame();
 }
 let game=readGame(), selectedId=null;
+let focusedOfferType=null;
 // Keep Stage 2 saves in their existing key and initialise new risk fields on load.
 game=normaliseGame(game);
+if(!Array.isArray(game.seenStrategicOffers))game.seenStrategicOffers=[];
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
@@ -51,6 +53,19 @@ function renderMetrics(){
   const a=document.createElement('small');a.textContent=name;const b=document.createElement('strong');b.textContent=value;const c=document.createElement('small');c.textContent=explain;card.append(a,b,c);el.append(card);
  }
 }
+function showOffer(type){
+ focusedOfferType=type;
+ renderOpportunities();
+ openPanel('opportunities');
+}
+// Record the first presentation before opening the dialog so a reload cannot repeat it.
+function openNewStrategicOffer(){
+ if(challengeFinished(game)||pendingEvent(game))return false;
+ const unseen=opportunityEntries(game).find(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth&&!game.seenStrategicOffers.includes(x.type));
+ if(!unseen)return false;
+ game={...game,seenStrategicOffers:[...game.seenStrategicOffers,unseen.type]};
+ persist();showOffer(unseen.type);return true;
+}
 function renderNotificationBadge(){
  const e=pendingEvent(game),count=(e?1:0)+(game.finalNotification?1:0)+opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth).length;
  const tag=document.getElementById('notification-count');tag.hidden=!count;tag.textContent=String(count);
@@ -63,12 +78,21 @@ function renderNotifications(){
  const title=document.createElement('h3');title.textContent='Notifications';c.append(title);
  const e=pendingEvent(game);
  if(e){
-  const p=document.createElement('p');p.textContent='Month '+game.month+': '+e.title+' — decision required before advancing.';
+  const p=document.createElement('p');p.textContent='⚠ Decision required · Month '+game.month+': '+e.title+'. Resolve before advancing.';
   const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Open decision';btn.addEventListener('click',()=>openPanel('event'));c.append(p,btn);
  }else{const p=document.createElement('p');p.textContent='No pending council decisions.';c.append(p);}
- const offers=opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth);
- if(offers.length){const h=document.createElement('h4');h.textContent='Strategic opportunities · '+offers.length+' available';const b=document.createElement('button');b.type='button';b.className='policy-action';b.textContent='Review opportunities';b.addEventListener('click',()=>{renderOpportunities();openPanel('opportunities');});c.append(h,b);}
- for(const x of opportunityEntries(game).filter(x=>['succeeded','failed','expired','declined','pending'].includes(opportunityStatus(x,game.month)))){const p=document.createElement('p');p.textContent=STRATEGIC_OPPORTUNITIES[x.type].title+' · '+(opportunityStatus(x,game.month)==='pending'?'Decision pending (Month '+x.resultMonth+')':opportunityStatus(x,game.month))+'.';c.append(p);}
+ const offerHistory=opportunityEntries(game).filter(x=>x.offerMonth<=game.month);
+ if(offerHistory.length){
+  const h=document.createElement('h4');h.textContent='Strategic opportunities';c.append(h);
+  for(const x of offerHistory){
+   const status=opportunityStatus(x,game.month),available=status==='offered'&&game.month<=x.expiresMonth;
+   const card=document.createElement('section');card.className='policy-section';
+   const heading=document.createElement('strong');heading.textContent=STRATEGIC_OPPORTUNITIES[x.type].title;
+   const label=document.createElement('p');label.className='policy-compare';label.textContent=available?'Optional opportunity · available through Month '+x.expiresMonth:status==='pending'?'Funded · outcome due Month '+x.resultMonth:'Outcome: '+status;
+   const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent=available?'Review opportunity':'Review record';btn.addEventListener('click',()=>showOffer(x.type));
+   card.append(heading,label,btn);c.append(card);
+  }
+ }
  if(game.finalNotification){
   const o=game.finalNotification;
   const h=document.createElement('h4');h.textContent='🏆 Completed challenge · Month 12';
@@ -166,8 +190,6 @@ function renderCouncil(){
   item.append(h,info,btn,confirmation);if(reason){const note=document.createElement('p');note.className='unavailable-reason';note.textContent=reason;item.append(note);}
   programmes.append(item);
  }
- const opps=opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth);
- if(opps.length){const sec=section('Strategic opportunities',opps.length+' time-limited investment offer(s). Success is not guaranteed.');const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Review strategic opportunities';btn.addEventListener('click',()=>{renderOpportunities();openPanel('opportunities');});sec.append(btn);}
  const e=pendingEvent(game);if(e){const sec=section('Pending event',e.title+' — decide before advancing.');const btn=document.createElement('button');btn.className='policy-action';btn.textContent='Review event';btn.addEventListener('click',()=>openPanel('event'));sec.append(btn);}
  const footer=document.createElement('p');footer.className='grant-note';footer.textContent='Existing £5,000 grants remain available when inspecting individual shops. The new figures are provisional game-balancing assumptions.';c.append(footer);
 }
@@ -292,7 +314,7 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';
- const actions=document.createElement('div');actions.className='event-actions';for(const fund of [true,false]){const b=document.createElement('button');b.type='button';b.className=fund?'primary':'';b.textContent=fund?'Fund '+currency(e.cost):'Decline — £0';b.disabled=fund&&game.councilBudget<e.cost;b.addEventListener('click',()=>{game=decideEvent(game,fund);persist();renderAll();closePanel();});actions.append(b);}el.append(h,p,actions);
+ const actions=document.createElement('div');actions.className='event-actions';for(const fund of [true,false]){const b=document.createElement('button');b.type='button';b.className=fund?'primary':'';b.textContent=fund?'Fund '+currency(e.cost):'Decline — £0';b.disabled=fund&&game.councilBudget<e.cost;b.addEventListener('click',()=>{game=decideEvent(game,fund);persist();renderAll();closePanel();openNewStrategicOffer();});actions.append(b);}el.append(h,p,actions);
 }
 function renderFinal(){
  const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;
@@ -377,8 +399,8 @@ function renderLocalEconomy(){
 function renderOpportunities(){
  const el=document.getElementById('opportunities');el.replaceChildren();
  const h=document.createElement('h3');h.textContent='Strategic opportunities';el.append(h);
- const note=document.createElement('p');note.textContent='Rare offers with upfront costs and uncertain outcomes. Odds are fixed when you invest; refreshing cannot change them. Unaccepted offers expire without blocking a turn.';el.append(note);
- const entries=opportunityEntries(game).filter(x=>x.offerMonth<=game.month);
+ const note=document.createElement('p');note.textContent='Optional opportunity — invest, decline, or close to decide later. Offers expire without blocking the next month. Success is rolled once and saved.';el.append(note);
+ const entries=opportunityEntries(game).filter(x=>x.offerMonth<=game.month&&(!focusedOfferType||x.type===focusedOfferType));
  if(!entries.length){const p=document.createElement('p');p.textContent='No opportunities recorded yet.';el.append(p);}
  for(const x of entries){
   const p=STRATEGIC_OPPORTUNITIES[x.type],status=opportunityStatus(x,game.month);
@@ -398,8 +420,8 @@ function renderOpportunities(){
    const cancel=document.createElement('button');cancel.type='button';cancel.className='policy-action';cancel.textContent='Cancel';
    fund.addEventListener('click',()=>{confirmation.hidden=false;fund.hidden=true;});
    cancel.addEventListener('click',()=>{confirmation.hidden=true;fund.hidden=false;});
-   yes.addEventListener('click',()=>{try{game=decideOpportunity(game,x.type,true);persist();renderAll();openPanel('opportunities');}catch(err){alert(err.message);}});
-   decline.addEventListener('click',()=>{game=decideOpportunity(game,x.type,false);persist();renderAll();openPanel('opportunities');});
+   yes.addEventListener('click',()=>{try{game=decideOpportunity(game,x.type,true);persist();renderAll();showOffer(x.type);}catch(err){alert(err.message);}});
+   decline.addEventListener('click',()=>{game=decideOpportunity(game,x.type,false);persist();renderAll();showOffer(x.type);});
    confirmation.append(prompt,yes,cancel);box.append(fund,decline,confirmation);
    if(reason){const r=document.createElement('p');r.className='unavailable-reason';r.textContent=reason;box.append(r);}
   }else if(status==='pending'){
@@ -422,7 +444,6 @@ modal.addEventListener('click',e=>{if(e.target===modal)closePanel();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closePanel();});
 document.getElementById('notification').addEventListener('click',()=>openPanel('notifications'));
 document.getElementById('reopen-event').addEventListener('click',()=>openPanel('event'));
-document.getElementById('show-opportunities').addEventListener('click',()=>{renderOpportunities();openPanel('opportunities');});
 document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
 document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
 document.getElementById('show-issues').addEventListener('click',()=>{renderIssues();openPanel('issues');});
@@ -432,6 +453,6 @@ document.getElementById('show-report').addEventListener('click',()=>{
  if(!game.latestResults.length){alert('The first monthly report will be available after you advance a month.');return;}
  openPanel('report');
 });
-document.getElementById('advance').addEventListener('click',()=>{if(pendingEvent(game)){openPanel('event');return;}try{game=runChallengeMonth(game);persist();renderAll();if(challengeFinished(game))openPanel('final');else if(pendingEvent(game))openPanel('event');else openPanel('report');}catch(e){alert(e.message);}});
+document.getElementById('advance').addEventListener('click',()=>{if(pendingEvent(game)){openPanel('event');return;}try{game=runChallengeMonth(game);persist();renderAll();if(challengeFinished(game))openPanel('final');else if(pendingEvent(game))openPanel('event');else if(!openNewStrategicOffer())openPanel('report');}catch(e){alert(e.message);}});
 document.getElementById('reset').addEventListener('click',()=>{if(!confirm('Restart from Month 1? This replaces your current progress in this version.'))return;game=startingGame();closePanel();persist();renderAll();});
-renderAll();persist();if(pendingEvent(game))openPanel('event');else if(challengeFinished(game))openPanel('final');
+renderAll();persist();if(pendingEvent(game))openPanel('event');else if(challengeFinished(game))openPanel('final');else openNewStrategicOffer();
