@@ -71,7 +71,7 @@ function renderNotificationBadge(){
  const tag=document.getElementById('notification-count');tag.hidden=!count;tag.textContent=String(count);
  const banner=document.getElementById('pending-banner');banner.hidden=!e;
  document.getElementById('pending-message').textContent=e?'Month '+game.month+': '+e.title+'. Choose an option before advancing.':'';
- document.getElementById('advance').textContent=e?'Review pending decision →':'Advance month →';
+ document.getElementById('advance').textContent=e?'Review decision →':'Advance →';
 }
 function renderNotifications(){
  const c=document.getElementById('notifications');c.replaceChildren();
@@ -456,3 +456,15 @@ document.getElementById('show-report').addEventListener('click',()=>{
 document.getElementById('advance').addEventListener('click',()=>{if(pendingEvent(game)){openPanel('event');return;}try{game=runChallengeMonth(game);persist();renderAll();if(challengeFinished(game))openPanel('final');else if(pendingEvent(game))openPanel('event');else if(!openNewStrategicOffer())openPanel('report');}catch(e){alert(e.message);}});
 document.getElementById('reset').addEventListener('click',()=>{if(!confirm('Restart from Month 1? This replaces your current progress in this version.'))return;game=normaliseGame(startingGame());closePanel();persist();renderAll();});
 renderAll();persist();if(pendingEvent(game))openPanel('event');else if(challengeFinished(game))openPanel('final');else openNewStrategicOffer();
+
+/* Stage 7D: show the road scroll hint only when horizontal overflow exists. */
+(function setupStreetScrollHint(){
+ const viewport=document.getElementById('street-viewport');
+ const cue=document.getElementById('street-scroll-cue');
+ if(!viewport||!cue)return;
+ const update=()=>{cue.hidden=viewport.scrollWidth<=viewport.clientWidth+2;};
+ viewport.addEventListener('scroll',update,{passive:true});
+ window.addEventListener('resize',update);
+ if(typeof ResizeObserver!=='undefined'){const observer=new ResizeObserver(update);observer.observe(viewport);observer.observe(viewport.querySelector('.map'));}
+ update();
+})();

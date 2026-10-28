@@ -134,3 +134,25 @@ header{position:relative;padding-right:50px}.notification{position:absolute;righ
 
 /* Stage 7A: mobile-friendly local economy summary. */
 .economy-factor{padding:13px 0;border-bottom:1px solid #dde5dc;display:grid;gap:8px}.economy-factor-head{display:flex;justify-content:space-between;gap:10px}.economy-factor small{color:#627468}.economy-track{height:10px;border-radius:8px;background:#e6ebe5;overflow:hidden}.economy-fill{height:100%;background:#368d72;border-radius:8px}.economy-cost{background:#ca8747}
+
+/* Stage 7D: readable storefronts on narrow screens, with north and south moving together. */
+.street-viewport{width:100%;max-width:100%;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin;border-radius:12px;}
+.street-viewport .map{box-sizing:border-box;width:100%;min-width:0;}
+.street-scroll-cue{position:absolute;left:50%;transform:translateX(-50%);top:8px;z-index:2;display:flex;flex-direction:column;align-items:center;justify-content:center;line-height:1.05;font-size:20px;font-weight:800;color:#284f48;background:rgba(237,244,226,.85);border-radius:9px;padding:2px 12px;pointer-events:none;white-space:nowrap;}
+.street-scroll-cue small{font-size:10px;text-transform:uppercase;letter-spacing:.06em;}
+.street-viewport .street{position:relative;}
+@media (max-width:680px){
+ .street-viewport .map{min-width:660px;}
+ .street-viewport .rowshops{gap:6px;grid-template-columns:repeat(6,minmax(0,1fr));}
+ .street-viewport .shop-name{font-size:11px;}
+ .street-viewport .shop-type{font-size:10px;}
+ .street-viewport .front{height:65px;}
+}
+/* Accessible floating advance control; hidden behind modals and padded away from page content. */
+.shell{padding-bottom:calc(94px + env(safe-area-inset-bottom));}
+.floating-advance{position:fixed;bottom:calc(14px + env(safe-area-inset-bottom));right:max(14px,env(safe-area-inset-right));z-index:20;display:flex;justify-content:flex-end;pointer-events:none;}
+.floating-advance .advance{pointer-events:auto;min-width:136px;min-height:48px;padding:12px 19px;border-radius:999px;box-shadow:0 5px 20px rgba(20,60,43,.27);font-size:14px;white-space:nowrap;}
+.floating-advance .advance:focus-visible{outline:3px solid #215f86;outline-offset:3px;}
+.floating-advance .advance:disabled{opacity:.55;box-shadow:none;}
+body.modal-active .floating-advance{display:none;}
+@media (min-width:900px){.floating-advance{right:max(24px,calc((100vw - 860px)/2));}}
