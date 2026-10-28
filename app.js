@@ -150,10 +150,17 @@ function renderCouncil(){
   const info=document.createElement('p');info.textContent=description;
   const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Fund '+title+' · '+currency(ECONOMIC_PROGRAMMES[type].cost);
   const reason=programmeAvailability(game,type);btn.disabled=!!reason;
-  btn.addEventListener('click',()=>{if(!confirm('Fund '+title+' for '+currency(ECONOMIC_PROGRAMMES[type].cost)+'? This is an upfront council investment.'))return;
-   try{game=fundEconomicProgramme(game,type);persist();renderAll();openPanel('council');}catch(err){alert(err.message);}
+  const confirmation=document.createElement('div');confirmation.className='policy-preview';confirmation.hidden=true;
+  const confirmText=document.createElement('p');confirmText.textContent='Confirm '+title+': '+currency(ECONOMIC_PROGRAMMES[type].cost)+' upfront and '+ECONOMIC_PROGRAMMES[type].points+' Action Point'+(ECONOMIC_PROGRAMMES[type].points===1?'':'s')+'.';
+  const apply=document.createElement('button');apply.type='button';apply.className='policy-action compact-apply';apply.textContent='Confirm funding';
+  const cancel=document.createElement('button');cancel.type='button';cancel.className='policy-action';cancel.textContent='Cancel';
+  confirmation.append(confirmText,apply,cancel);
+  btn.addEventListener('click',()=>{confirmation.hidden=false;btn.hidden=true;});
+  cancel.addEventListener('click',()=>{confirmation.hidden=true;btn.hidden=false;});
+  apply.addEventListener('click',()=>{
+   try{game=fundEconomicProgramme(game,type);persist();renderAll();openPanel('council');}catch(err){alert(err.message);renderAll();openPanel('council');}
   });
-  item.append(h,info,btn);if(reason){const note=document.createElement('p');note.className='unavailable-reason';note.textContent=reason;item.append(note);}
+  item.append(h,info,btn,confirmation);if(reason){const note=document.createElement('p');note.className='unavailable-reason';note.textContent=reason;item.append(note);}
   programmes.append(item);
  }
  const e=pendingEvent(game);if(e){const sec=section('Pending event',e.title+' — decide before advancing.');const btn=document.createElement('button');btn.className='policy-action';btn.textContent='Review event';btn.addEventListener('click',()=>openPanel('event'));sec.append(btn);}
@@ -349,7 +356,8 @@ function renderLocalEconomy(){
  const explanation=document.createElement('p');explanation.className='note';explanation.textContent=last&&last.economyChange?'Latest monthly movements: '+last.economyChange+'.':'Initial town economy. Advance a month to see changes.';el.append(explanation);
  const active=economicProgrammes(game);if(active.length){
   const h=document.createElement('h4');h.textContent='Council economic programmes';el.append(h);
-  for(const x of active){const effects=appliedProgrammeEffects(game,game.month);const p=document.createElement('p');
+  const effects=appliedProgrammeEffects(game,game.month);
+  for(const x of active){const p=document.createElement('p');
    p.textContent=x.type==='employment'?'Employment programme funded in Month '+x.startMonth+'. Benefits begin Month '+(x.startMonth+ECONOMIC_PROGRAMMES.employment.delay)+' and run through Month '+(x.startMonth+ECONOMIC_PROGRAMMES.employment.delay+ECONOMIC_PROGRAMMES.employment.duration-1)+'.':'Voucher scheme funded in Month '+x.startMonth+'. Trading support through Month '+(x.startMonth+1)+'.';el.append(p);
   }
   const p=document.createElement('p');p.textContent='Current-month programme contribution: employment +'+effects.employment.toFixed(2)+'; earnings +'+effects.earnings.toFixed(2)+'; temporary spending power +'+effects.spendingPower+'.';el.append(p);
