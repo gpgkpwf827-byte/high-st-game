@@ -35,8 +35,9 @@ function townMetrics(state){
  const light=(typeof SERVICES!=='undefined'?SERVICES.lighting[cp.lighting]:{attractiveness:0,footfall:0});
  const transport=(typeof TRANSPORT!=='undefined'&&state.transportChoice)?TRANSPORT[state.transportChoice]:null;
  const marketing=(state.marketingUntil||0)>=state.month?(typeof MARKETING!=='undefined'?MARKETING.footfall:0):0;
- const footfall=Math.round(Math.max(0,baseFootfall*(1+delta*.008+(light.footfall||0)+(transport?.footfall||0)+marketing)));
- const attractiveness=clamp(ECONOMY.attractiveness+delta*.2+clean.attractiveness+light.attractiveness+(transport?.attractiveness||0),0,100);
+ const strategic=typeof opportunityEffects==='function'?opportunityEffects(state,state.month):{footfall:0,attractiveness:0};
+ const footfall=Math.round(Math.max(0,baseFootfall*(1+delta*.008+(light.footfall||0)+(transport?.footfall||0)+marketing+strategic.footfall)));
+ const attractiveness=clamp(ECONOMY.attractiveness+delta*.2+clean.attractiveness+light.attractiveness+(transport?.attractiveness||0)+strategic.attractiveness,0,100);
  return {footfall,spendingPower:spendingIndex(currentLocalEconomy(state)),attractiveness,vitality:vitality.score,
   occupancyScore:vitality.occupancy,diversityScore:vitality.diversity,businessHealth:vitality.health,baselineVitality:neutral};
 }

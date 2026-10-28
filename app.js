@@ -19,7 +19,7 @@ game=normaliseGame(game);
 let activePanel=null;
 const modal=document.getElementById('modal');
 const modalSheet=modal.querySelector('.modal-sheet');
-const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',issues:'Current issues',performance:'Performance','local-economy-panel':'Local economy',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
+const panelNames={details:'Shop details',council:'Council management',notifications:'Notifications',opportunities:'Strategic opportunities',issues:'Current issues',performance:'Performance','local-economy-panel':'Local economy',report:'Monthly report',event:'Council decision',final:'Challenge result','goal-panel':'Challenge'};
 function openPanel(id){
  activePanel=id;
  for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==id;
@@ -52,7 +52,7 @@ function renderMetrics(){
  }
 }
 function renderNotificationBadge(){
- const e=pendingEvent(game),count=(e?1:0)+(game.finalNotification?1:0);
+ const e=pendingEvent(game),count=(e?1:0)+(game.finalNotification?1:0)+opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth).length;
  const tag=document.getElementById('notification-count');tag.hidden=!count;tag.textContent=String(count);
  const banner=document.getElementById('pending-banner');banner.hidden=!e;
  document.getElementById('pending-message').textContent=e?'Month '+game.month+': '+e.title+'. Choose an option before advancing.':'';
@@ -66,6 +66,9 @@ function renderNotifications(){
   const p=document.createElement('p');p.textContent='Month '+game.month+': '+e.title+' — decision required before advancing.';
   const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Open decision';btn.addEventListener('click',()=>openPanel('event'));c.append(p,btn);
  }else{const p=document.createElement('p');p.textContent='No pending council decisions.';c.append(p);}
+ const offers=opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth);
+ if(offers.length){const h=document.createElement('h4');h.textContent='Strategic opportunities · '+offers.length+' available';const b=document.createElement('button');b.type='button';b.className='policy-action';b.textContent='Review opportunities';b.addEventListener('click',()=>{renderOpportunities();openPanel('opportunities');});c.append(h,b);}
+ for(const x of opportunityEntries(game).filter(x=>['succeeded','failed','expired','declined','pending'].includes(opportunityStatus(x,game.month)))){const p=document.createElement('p');p.textContent=STRATEGIC_OPPORTUNITIES[x.type].title+' · '+(opportunityStatus(x,game.month)==='pending'?'Decision pending (Month '+x.resultMonth+')':opportunityStatus(x,game.month))+'.';c.append(p);}
  if(game.finalNotification){
   const o=game.finalNotification;
   const h=document.createElement('h4');h.textContent='🏆 Completed challenge · Month 12';
@@ -163,6 +166,8 @@ function renderCouncil(){
   item.append(h,info,btn,confirmation);if(reason){const note=document.createElement('p');note.className='unavailable-reason';note.textContent=reason;item.append(note);}
   programmes.append(item);
  }
+ const opps=opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth);
+ if(opps.length){const sec=section('Strategic opportunities',opps.length+' time-limited investment offer(s). Success is not guaranteed.');const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Review strategic opportunities';btn.addEventListener('click',()=>{renderOpportunities();openPanel('opportunities');});sec.append(btn);}
  const e=pendingEvent(game);if(e){const sec=section('Pending event',e.title+' — decide before advancing.');const btn=document.createElement('button');btn.className='policy-action';btn.textContent='Review event';btn.addEventListener('click',()=>openPanel('event'));sec.append(btn);}
  const footer=document.createElement('p');footer.className='grant-note';footer.textContent='Existing £5,000 grants remain available when inspecting individual shops. The new figures are provisional game-balancing assumptions.';c.append(footer);
 }
@@ -283,7 +288,7 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
  const struggling=risks.filter(r=>r.name==='Struggling').length,critical=risks.filter(r=>r.name==='Critical').length;
  const recent=game.lastClosures||[];
  const thisMonth=game.history[game.history.length-1];
- document.getElementById('report-risks').textContent='Local economy: '+economyDetail+' Council programme impact: '+(thisMonth?.programmeEffects?.employment||0).toFixed(2)+' employment, '+(thisMonth?.programmeEffects?.earnings||0).toFixed(2)+' earnings, +'+(thisMonth?.programmeEffects?.spendingPower||0).toFixed(1)+' temporary Spending Power. Town development: '+(thisMonth?.development||'No recorded development')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
+ document.getElementById('report-risks').textContent='Local economy: '+economyDetail+' Council programme impact: '+(thisMonth?.programmeEffects?.employment||0).toFixed(2)+' employment, '+(thisMonth?.programmeEffects?.earnings||0).toFixed(2)+' earnings, +'+(thisMonth?.programmeEffects?.spendingPower||0).toFixed(1)+' temporary Spending Power. Town development: '+(thisMonth?.development||'No recorded development')+'. Strategic opportunities: '+(thisMonth?.opportunityResults||[]).map(x=>STRATEGIC_OPPORTUNITIES[x.type].title+' '+(x.success?'succeeded':'failed')).join(', ')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';
@@ -332,6 +337,10 @@ function renderIssues(){
  }else section('Town developments',['No completed month yet. Developments are revealed when you advance time.']);
  const fx=appliedProgrammeEffects(game,game.month);
  if(economicProgrammes(game).length)section('Economic programmes — current month',[`Employment +${fx.employment.toFixed(2)} · Earnings +${fx.earnings.toFixed(2)} · Temporary trading Spending Power +${fx.spendingPower.toFixed(1)}`, 'Employment programme changes persist once applied; voucher boosts end after two trading months.']);
+ const availableOpps=opportunityEntries(game).filter(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth);
+ if(availableOpps.length)section('Strategic offers — available now',availableOpps.map(x=>STRATEGIC_OPPORTUNITIES[x.type].title+' · '+Math.round(STRATEGIC_OPPORTUNITIES[x.type].chance*100)+'% chance · expires Month '+x.expiresMonth));
+ const projects=opportunityEntries(game).filter(x=>x.status==='pending'||x.status==='succeeded');
+ if(projects.length)section('Strategic investments — recorded',projects.map(x=>STRATEGIC_OPPORTUNITIES[x.type].title+' · '+x.status+(x.status==='pending'?' · result Month '+x.resultMonth:'')));
  const e=pendingEvent(game);if(e)section('Decision awaiting your response',[`Month ${game.month}: ${e.title}. Use the notification bell to review it.`]);
  const metrics=townMetrics(game);section('Current town estimate',[`Footfall: ${metrics.footfall.toLocaleString('en-GB')} visits · Attractiveness: ${metrics.attractiveness.toFixed(0)}/100`,`Commercial Vitality: ${metrics.vitality.toFixed(0)}/100. Vitality contributes to footfall and attractiveness relative to the starting town.`]);
 }
@@ -364,8 +373,44 @@ function renderLocalEconomy(){
  }
  const foot=document.createElement('p');foot.textContent='Calculation: 40% employment + 30% earnings + 30% (100 − living-cost pressure). Employment support adds lasting improvements with a lag; shop-local vouchers only affect temporary trading-month purchasing power.';el.append(foot);
 }
+
+function renderOpportunities(){
+ const el=document.getElementById('opportunities');el.replaceChildren();
+ const h=document.createElement('h3');h.textContent='Strategic opportunities';el.append(h);
+ const note=document.createElement('p');note.textContent='Rare offers with upfront costs and uncertain outcomes. Odds are fixed when you invest; refreshing cannot change them. Unaccepted offers expire without blocking a turn.';el.append(note);
+ const entries=opportunityEntries(game).filter(x=>x.offerMonth<=game.month);
+ if(!entries.length){const p=document.createElement('p');p.textContent='No opportunities recorded yet.';el.append(p);}
+ for(const x of entries){
+  const p=STRATEGIC_OPPORTUNITIES[x.type],status=opportunityStatus(x,game.month);
+  const box=document.createElement('section');box.className='policy-section';
+  const heading=document.createElement('h4');heading.textContent=p.title;box.append(heading);
+  const description=document.createElement('p');description.textContent=p.description;box.append(description);
+  const detail=document.createElement('p');detail.className='policy-compare';detail.textContent=currency(p.cost)+' upfront · '+p.points+' Action Point(s) · '+Math.round(p.chance*100)+'% success chance · '+(p.delay?'Outcome in '+p.delay+' months':'Immediate outcome')+' · '+(status==='offered'?'Available Months '+x.offerMonth+'–'+x.expiresMonth:'Status: '+status);box.append(detail);
+  const positive=document.createElement('p');positive.textContent='If successful: '+p.success;box.append(positive);
+  const negative=document.createElement('p');negative.textContent='If unsuccessful: '+p.failure;box.append(negative);
+  if(status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth){
+   const reason=opportunityAvailability(game,x.type);
+   const fund=document.createElement('button');fund.type='button';fund.className='policy-action';fund.textContent='Consider investing';fund.disabled=!!reason;
+   const decline=document.createElement('button');decline.type='button';decline.className='policy-action';decline.textContent='Decline offer';
+   const confirmation=document.createElement('div');confirmation.className='policy-preview';confirmation.hidden=true;
+   const prompt=document.createElement('p');prompt.textContent='Confirm '+currency(p.cost)+' and '+p.points+' Action Points? Success chance '+Math.round(p.chance*100)+'%. No refunds for failure.';
+   const yes=document.createElement('button');yes.type='button';yes.className='policy-action compact-apply';yes.textContent='Confirm investment';
+   const cancel=document.createElement('button');cancel.type='button';cancel.className='policy-action';cancel.textContent='Cancel';
+   fund.addEventListener('click',()=>{confirmation.hidden=false;fund.hidden=true;});
+   cancel.addEventListener('click',()=>{confirmation.hidden=true;fund.hidden=false;});
+   yes.addEventListener('click',()=>{try{game=decideOpportunity(game,x.type,true);persist();renderAll();openPanel('opportunities');}catch(err){alert(err.message);}});
+   decline.addEventListener('click',()=>{game=decideOpportunity(game,x.type,false);persist();renderAll();openPanel('opportunities');});
+   confirmation.append(prompt,yes,cancel);box.append(fund,decline,confirmation);
+   if(reason){const r=document.createElement('p');r.className='unavailable-reason';r.textContent=reason;box.append(r);}
+  }else if(status==='pending'){
+   const pending=document.createElement('p');pending.textContent='Investment committed in Month '+x.investedMonth+'. Decision scheduled for Month '+x.resultMonth+'.';box.append(pending);
+  }else if(x.investedMonth){const outcome=document.createElement('p');outcome.textContent=x.success?'✓ Project succeeded.': '✕ Project failed. Investment lost.';box.append(outcome);}
+  el.append(box);
+ }
+}
+
 function renderAll(){
- renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);renderIssues();renderLocalEconomy();
+ renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);renderIssues();renderLocalEconomy();renderOpportunities();
  if(selectedId!==null)inspectPremise(selectedId,false);
  if(activePanel){
   for(const name of Object.keys(panelNames))document.getElementById(name).hidden=name!==activePanel;
@@ -377,6 +422,7 @@ modal.addEventListener('click',e=>{if(e.target===modal)closePanel();});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!modal.hidden)closePanel();});
 document.getElementById('notification').addEventListener('click',()=>openPanel('notifications'));
 document.getElementById('reopen-event').addEventListener('click',()=>openPanel('event'));
+document.getElementById('show-opportunities').addEventListener('click',()=>{renderOpportunities();openPanel('opportunities');});
 document.getElementById('show-council').addEventListener('click',()=>openPanel('council'));
 document.getElementById('show-goal').addEventListener('click',()=>openPanel('goal-panel'));
 document.getElementById('show-issues').addEventListener('click',()=>{renderIssues();openPanel('issues');});
