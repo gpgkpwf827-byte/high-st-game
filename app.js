@@ -52,7 +52,7 @@ function renderMetrics(){
  }
 }
 function renderNotificationBadge(){
- const e=pendingEvent(game),count=e?1:0;
+ const e=pendingEvent(game),count=(e?1:0)+(game.finalNotification?1:0);
  const tag=document.getElementById('notification-count');tag.hidden=!count;tag.textContent=String(count);
  const banner=document.getElementById('pending-banner');banner.hidden=!e;
  document.getElementById('pending-message').textContent=e?'Month '+game.month+': '+e.title+'. Choose an option before advancing.':'';
@@ -62,10 +62,17 @@ function renderNotifications(){
  const c=document.getElementById('notifications');c.replaceChildren();
  const title=document.createElement('h3');title.textContent='Notifications';c.append(title);
  const e=pendingEvent(game);
- if(!e){const p=document.createElement('p');p.textContent='No pending council decisions.';c.append(p);return;}
- const p=document.createElement('p');p.textContent='Month '+game.month+': '+e.title+' — decision required before advancing.';
- const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Open decision';btn.addEventListener('click',()=>openPanel('event'));
- c.append(p,btn);
+ if(e){
+  const p=document.createElement('p');p.textContent='Month '+game.month+': '+e.title+' — decision required before advancing.';
+  const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Open decision';btn.addEventListener('click',()=>openPanel('event'));c.append(p,btn);
+ }else{const p=document.createElement('p');p.textContent='No pending council decisions.';c.append(p);}
+ if(game.finalNotification){
+  const o=game.finalNotification;
+  const h=document.createElement('h4');h.textContent='🏆 Completed challenge · Month 12';
+  const p=document.createElement('p');p.textContent=o.won?'Balanced recovery achieved — all three targets met.':'Challenge finished — '+o.met+' of 3 targets achieved.';
+  const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Review final results';btn.addEventListener('click',()=>openPanel('final'));
+  c.append(h,p,btn);
+ }
 }
 function previewMetrics(state){
  const m=townMetrics(state);return 'Footfall '+m.footfall.toLocaleString('en-GB')+' visits  ·  Attractiveness '+m.attractiveness.toFixed(0)+'/100  ·  Spending power '+m.spendingPower.toFixed(0)+'/100  ·  Vitality '+m.vitality.toFixed(0)+'/100';
@@ -133,6 +140,22 @@ function renderCouncil(){
  const campaign=section('Local marketing','£5,000 and 1 action point for a two-month +8% footfall campaign.');
  const b=document.createElement('button');b.type='button';b.className='policy-action';b.textContent='Fund marketing · £5,000';b.disabled=challengeFinished(game)||game.councilBudget<MARKETING.cost||actionsRemaining(game)<1||(game.marketingUntil||0)>=game.month;
  b.addEventListener('click',()=>{if(actionsRemaining(game)<1)return alert('No council action points remain.');const proposed=startCapacityMarketing(game);const ok=confirm('Fund a two-month campaign for £5,000? Projected town footfall: '+townMetrics(proposed).footfall.toLocaleString('en-GB')+' visits.');if(ok){game=proposed;persist();renderAll();openPanel('council');}});campaign.append(b);addBlockReason(campaign,b,(game.marketingUntil||0)>=game.month?'Campaign already active.':actionBlockReason(game,MARKETING.cost));
+ const programmes=section('Local economic programmes','Support household conditions or temporarily stimulate spending. These measures are independent of ordinary cleaning, lighting and business rates.');
+ for(const [type,title,description] of [
+  ['employment','Employment and skills','£25,000 · 2 Action Points. After two months, employment rises +0.9 and earnings +0.25 each month for five months. The improvement persists. One programme per challenge.'],
+  ['vouchers','Shop-local vouchers','£10,000 · 1 Action Point. Spending Power used for shop trading rises by 4 points for two months, starting this month. Underlying household finances do not change.']
+ ]){
+  const item=document.createElement('div');item.className='economy-programme';
+  const h=document.createElement('h4');h.textContent=title;
+  const info=document.createElement('p');info.textContent=description;
+  const btn=document.createElement('button');btn.type='button';btn.className='policy-action';btn.textContent='Fund '+title+' · '+currency(ECONOMIC_PROGRAMMES[type].cost);
+  const reason=programmeAvailability(game,type);btn.disabled=!!reason;
+  btn.addEventListener('click',()=>{if(!confirm('Fund '+title+' for '+currency(ECONOMIC_PROGRAMMES[type].cost)+'? This is an upfront council investment.'))return;
+   try{game=fundEconomicProgramme(game,type);persist();renderAll();openPanel('council');}catch(err){alert(err.message);}
+  });
+  item.append(h,info,btn);if(reason){const note=document.createElement('p');note.className='unavailable-reason';note.textContent=reason;item.append(note);}
+  programmes.append(item);
+ }
  const e=pendingEvent(game);if(e){const sec=section('Pending event',e.title+' — decide before advancing.');const btn=document.createElement('button');btn.className='policy-action';btn.textContent='Review event';btn.addEventListener('click',()=>openPanel('event'));sec.append(btn);}
  const footer=document.createElement('p');footer.className='grant-note';footer.textContent='Existing £5,000 grants remain available when inspecting individual shops. The new figures are provisional game-balancing assumptions.';c.append(footer);
 }
@@ -253,7 +276,7 @@ function renderReport(){const el=document.getElementById('report');el.hidden=!ga
  const struggling=risks.filter(r=>r.name==='Struggling').length,critical=risks.filter(r=>r.name==='Critical').length;
  const recent=game.lastClosures||[];
  const thisMonth=game.history[game.history.length-1];
- document.getElementById('report-risks').textContent='Local economy: '+economyDetail+' Town development: '+(thisMonth?.development||'No recorded development')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
+ document.getElementById('report-risks').textContent='Local economy: '+economyDetail+' Council programme impact: '+(thisMonth?.programmeEffects?.employment||0).toFixed(2)+' employment, '+(thisMonth?.programmeEffects?.earnings||0).toFixed(2)+' earnings, +'+(thisMonth?.programmeEffects?.spendingPower||0).toFixed(1)+' temporary Spending Power. Town development: '+(thisMonth?.development||'No recorded development')+'. Business outlook: '+struggling+' struggling, '+critical+' critical. '+(recent.length?'Closures this month: '+recent.map(c=>c.name+' ('+c.reason+')').join('; ')+'.':'No closures this month.');
 }
 function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(game);el.replaceChildren();el.hidden=!e;if(!e)return;
  const h=document.createElement('h3');h.textContent=e.title+' — Month '+game.month;const p=document.createElement('p');p.textContent=e.description+' Cost: '+currency(e.cost)+'; benefit: +'+Math.round(100*e.uplift)+'% transactions for '+e.duration+' months. Decide before advancing.';
@@ -261,7 +284,7 @@ function renderEvent(){const el=document.getElementById('event'),e=pendingEvent(
 }
 function renderFinal(){
  const el=document.getElementById('final');el.replaceChildren();el.hidden=!challengeFinished(game);if(el.hidden)return;
- const o=finalOutcome(game),heading=document.createElement('h3');
+ const o=game.finalNotification||makeFinalNotification(game),heading=document.createElement('h3');
  heading.textContent=o.won?'Challenge complete — balanced recovery achieved!':`Challenge complete — ${o.met} of 3 recovery targets met`;
  el.append(heading);
  const intro=document.createElement('p');intro.textContent='The final assessment uses the last completed trading month, not a forecast. All three objectives are required for a full victory.';el.append(intro);
@@ -272,7 +295,7 @@ function renderFinal(){
  ];
  const grid=document.createElement('div');grid.className='recovery-results';
  for(const [label,value,required,passed] of lines){const item=document.createElement('div');item.className='recovery-result';const name=document.createElement('strong');name.textContent=(passed?'✓ ':'✕ ')+label;const detail=document.createElement('span');detail.textContent=value+' · Target: '+required;item.append(name,detail);grid.append(item);}el.append(grid);
- const p=document.createElement('p');p.textContent='Council fund: '+currency(o.budget)+'. Tenant openings: '+o.opened+'. Closures: '+o.closures+'. Business rates collected: '+currency(game.totalRatesReceived||0)+'.';el.append(p);
+ const p=document.createElement('p');p.textContent='Council fund: '+currency(o.budget)+'. Tenant openings: '+o.opened+'. Closures: '+o.closures+'. Business rates collected: '+currency(o.rates||0)+'.';el.append(p);
 }
 
 function renderIssues(){
@@ -300,6 +323,8 @@ function renderIssues(){
   lines.push('This development is historical; it is not automatically active in the current month.');
   section('Latest town development — previous month',lines);
  }else section('Town developments',['No completed month yet. Developments are revealed when you advance time.']);
+ const fx=appliedProgrammeEffects(game,game.month);
+ if(economicProgrammes(game).length)section('Economic programmes — current month',[`Employment +${fx.employment.toFixed(2)} · Earnings +${fx.earnings.toFixed(2)} · Temporary trading Spending Power +${fx.spendingPower.toFixed(1)}`, 'Employment programme changes persist once applied; voucher boosts end after two trading months.']);
  const e=pendingEvent(game);if(e)section('Decision awaiting your response',[`Month ${game.month}: ${e.title}. Use the notification bell to review it.`]);
  const metrics=townMetrics(game);section('Current town estimate',[`Footfall: ${metrics.footfall.toLocaleString('en-GB')} visits · Attractiveness: ${metrics.attractiveness.toFixed(0)}/100`,`Commercial Vitality: ${metrics.vitality.toFixed(0)}/100. Vitality contributes to footfall and attractiveness relative to the starting town.`]);
 }
@@ -322,7 +347,14 @@ function renderLocalEconomy(){
  const rows=[['Employment',e.employment,'More people in work supports household spending.'],['Earnings',e.earnings,'Higher local income supports spending per transaction.'],['Living costs',e.livingCosts,'Higher pressure leaves less disposable income.']];
  for(const [name,val,meaning] of rows){const section=document.createElement('section');section.className='economy-factor';const line=document.createElement('div');line.className='economy-factor-head';const label=document.createElement('strong');label.textContent=name;const value=document.createElement('strong');value.textContent=val.toFixed(1)+'/100';line.append(label,value);const track=document.createElement('div');track.className='economy-track';const fill=document.createElement('div');fill.className='economy-fill'+(name==='Living costs'?' economy-cost':'');fill.style.width=val+'%';track.append(fill);const note=document.createElement('small');note.textContent=meaning;section.append(line,track,note);el.append(section);}
  const explanation=document.createElement('p');explanation.className='note';explanation.textContent=last&&last.economyChange?'Latest monthly movements: '+last.economyChange+'.':'Initial town economy. Advance a month to see changes.';el.append(explanation);
- const foot=document.createElement('p');foot.textContent='Calculation: 40% employment + 30% earnings + 30% (100 − living-cost pressure). Baseline 38/100. The factors update monthly, persist between turns and are saved. No direct council interventions are available until Stage 7B.';el.append(foot);
+ const active=economicProgrammes(game);if(active.length){
+  const h=document.createElement('h4');h.textContent='Council economic programmes';el.append(h);
+  for(const x of active){const effects=appliedProgrammeEffects(game,game.month);const p=document.createElement('p');
+   p.textContent=x.type==='employment'?'Employment programme funded in Month '+x.startMonth+'. Benefits begin Month '+(x.startMonth+ECONOMIC_PROGRAMMES.employment.delay)+' and run through Month '+(x.startMonth+ECONOMIC_PROGRAMMES.employment.delay+ECONOMIC_PROGRAMMES.employment.duration-1)+'.':'Voucher scheme funded in Month '+x.startMonth+'. Trading support through Month '+(x.startMonth+1)+'.';el.append(p);
+  }
+  const p=document.createElement('p');p.textContent='Current-month programme contribution: employment +'+effects.employment.toFixed(2)+'; earnings +'+effects.earnings.toFixed(2)+'; temporary spending power +'+effects.spendingPower+'.';el.append(p);
+ }
+ const foot=document.createElement('p');foot.textContent='Calculation: 40% employment + 30% earnings + 30% (100 − living-cost pressure). Employment support adds lasting improvements with a lag; shop-local vouchers only affect temporary trading-month purchasing power.';el.append(foot);
 }
 function renderAll(){
  renderStats();renderMetrics();renderShops();renderCouncil();renderReport();renderEvent();renderFinal();renderNotifications();renderPerformance(game);renderIssues();renderLocalEconomy();
