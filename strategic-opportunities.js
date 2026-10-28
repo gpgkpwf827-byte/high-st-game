@@ -4,12 +4,12 @@
 const STRATEGIC_OPPORTUNITIES=Object.freeze({
  employer:{title:'Attract a major employer',cost:45000,points:2,chance:.65,delay:2,window:2,description:'Offer relocation support for a regional employer. If the bid succeeds, jobs and earnings improve gradually after the project is confirmed.',success:'Employment +1.8 and earnings +0.5 each trading month for three months after approval.',failure:'The relocation bid fails. The council does not recover its contribution.'},
  festival:{title:'Regional shopping festival',cost:18000,points:1,chance:.75,delay:0,window:2,description:'Underwrite a high-profile town festival. The outcome is immediate and a successful event gives temporary extra customers and spending.',success:'Footfall +20% and trading Spending Power +3 for two months.',failure:'The festival fails to attract enough visitors. The investment is lost.'},
- cinema:{title:'Redevelop the former cinema',cost:70000,points:2,chance:.45,delay:2,window:2,description:'Help a private operator restore the old cinema. The decision takes time and may not succeed.',success:'Once delivered: footfall +8% and Attractiveness +4 for the rest of the challenge.',failure:'The redevelopment falls through. The council does not recover its contribution.'}
+ cinema:{title:'Redevelop the former cinema',cost:55000,points:2,chance:.45,delay:2,window:2,description:'Help a private operator restore the old cinema. The decision takes time and may not succeed.',success:'Once delivered: footfall +8% and Attractiveness +4 for the rest of the challenge.',failure:'The redevelopment falls through. The council does not recover its contribution.'}
 });
 function opportunityRandom(seed,salt){let x=((seed>>>0)^(salt*2654435761))>>>0;x^=x<<13;x^=x>>>17;x^=x<<5;return (x>>>0)/4294967296;}
 function opportunitySchedule(seed){
  const types=['employer','festival','cinema'];
- return types.map((type,i)=>({type,offerMonth:[2,5,8][i]+(opportunityRandom(seed,11+i)>.52?1:0),available:opportunityRandom(seed,31+i)<.88})).filter(x=>x.available);
+ return types.map((type,i)=>({type,offerMonth:[2,5,6][i]+(opportunityRandom(seed,11+i)>.52?1:0),available:opportunityRandom(seed,31+i)<.88})).filter(x=>x.available);
 }
 function initialOpportunities(seed,fromMonth=1){return opportunitySchedule(seed).filter(x=>x.offerMonth>=fromMonth).map(x=>({type:x.type,offerMonth:x.offerMonth,expiresMonth:x.offerMonth+STRATEGIC_OPPORTUNITIES[x.type].window-1,status:'offered'}));}
 function opportunityEntries(state){return Array.isArray(state.strategicOpportunities)?state.strategicOpportunities:[];}
