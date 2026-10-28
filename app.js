@@ -61,9 +61,9 @@ function showOffer(type){
 // Record the first presentation before opening the dialog so a reload cannot repeat it.
 function openNewStrategicOffer(){
  if(challengeFinished(game)||pendingEvent(game))return false;
- const unseen=opportunityEntries(game).find(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth&&!game.seenStrategicOffers.includes(x.type));
+ const unseen=opportunityEntries(game).find(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth&&!(Array.isArray(game.seenStrategicOffers)?game.seenStrategicOffers:[]).includes(x.type));
  if(!unseen)return false;
- game={...game,seenStrategicOffers:[...game.seenStrategicOffers,unseen.type]};
+ game={...game,seenStrategicOffers:[...(Array.isArray(game.seenStrategicOffers)?game.seenStrategicOffers:[]),unseen.type]};
  persist();showOffer(unseen.type);return true;
 }
 function renderNotificationBadge(){
@@ -454,5 +454,5 @@ document.getElementById('show-report').addEventListener('click',()=>{
  openPanel('report');
 });
 document.getElementById('advance').addEventListener('click',()=>{if(pendingEvent(game)){openPanel('event');return;}try{game=runChallengeMonth(game);persist();renderAll();if(challengeFinished(game))openPanel('final');else if(pendingEvent(game))openPanel('event');else if(!openNewStrategicOffer())openPanel('report');}catch(e){alert(e.message);}});
-document.getElementById('reset').addEventListener('click',()=>{if(!confirm('Restart from Month 1? This replaces your current progress in this version.'))return;game=startingGame();closePanel();persist();renderAll();});
+document.getElementById('reset').addEventListener('click',()=>{if(!confirm('Restart from Month 1? This replaces your current progress in this version.'))return;game=normaliseGame(startingGame());closePanel();persist();renderAll();});
 renderAll();persist();if(pendingEvent(game))openPanel('event');else if(challengeFinished(game))openPanel('final');else openNewStrategicOffer();
