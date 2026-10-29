@@ -1,0 +1,33 @@
+HIGH STREET STAGE 8B.5 — CODE CONSOLIDATION CANDIDATE
+
+Baseline: confirmed 8B.4.1 deployed game.
+
+UPLOAD 3 FILES TO GITHUB REPOSITORY ROOT:
+  REPLACE index.html
+  ADD interface.js
+  ADD interface.css
+
+Keep ALL existing files including stage8b1.js through stage8b4.js and CSS during testing.
+They are now UNREFERENCED by index.html, but DO NOT DELETE THEM YET.
+This makes reverting index.html sufficient to restore the 8B.4.1 interface.
+
+WHAT CHANGED:
+- Four stage-specific interface JS files consolidated into interface.js, in the same execution order.
+- Four stage-specific interface CSS files consolidated into interface.css, in the same cascade order.
+- index.html now loads these two files instead of eight.
+- Header, title, footer identify Stage 8B.5.
+- No economy, state, save, or gameplay changes. No functional reorganisation in this pass.
+
+SAFARI REGRESSION TESTS:
+1. Stage 8B.5 appears in header/footer/title; reload in Safari.
+2. Town shows street and expandable recovery objectives, recorded footfall agrees with Performance.
+3. All four tabs work; 12 shops, occupancy filters and vacancies work.
+4. Opening any shop always scrolls details to the top; single Close and Expand/Compact work.
+5. Council HQ four cards, commitments, policy sliders, programmes and investments work.
+6. Reports dashboard, automatic monthly briefing and detailed disclosure work.
+7. The green redundant briefing summary is absent.
+8. Advance Month, events/opportunities and final Month 12 outcome work.
+9. Save survives reload; funds, month, actions and decisions are unchanged.
+
+AFTER ALL TESTS PASS: ask to remove obsolete stage8b1.js/.css, stage8b2.js/.css, stage8b3.js/.css and stage8b4.js/.css.
+Avoid deleting them before tests pass; their Git history also remains recoverable.
