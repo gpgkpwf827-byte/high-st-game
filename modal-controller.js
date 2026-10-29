@@ -9,8 +9,9 @@
  const sheet=modal?.querySelector('.modal-sheet');
  if(!modal||!advance||typeof openPanel!=='function')return;
  let active=false, eventPresented=false, scheduled=false;
+ panelNames['owner-request']='Business-owner request';
  const toggle=document.getElementById('b2-expand');
- const sizePanels=new Set(['report','event','opportunities','notifications','final']);
+ const sizePanels=new Set(['report','event','opportunities','owner-request','final']);
  function syncPanel(name){
   const scroll=modal.querySelector('.modal-scroll');if(scroll)scroll.scrollTop=0;
   if(toggle)toggle.hidden=!(name==='final'||(active&&sizePanels.has(name)));

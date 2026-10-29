@@ -148,6 +148,7 @@
      if(!confirm(prompt))return;
      try{game=answer(game,r.id,selected);persist();renderAll();
        if(source==='details'&&typeof inspectPremise==='function')inspectPremise(r.premiseId,false);
+       else if(source==='popup')closePanel(); // Resume the existing monthly queue.
        else openPanel('notifications');
      }catch(e){error.textContent=e.message;}
     });
@@ -236,9 +237,11 @@
    const r=getRequests(game).find(x=>x.status==='offered'&&game.month<=x.expiresMonth&&owning(game,x)&&!x.shown);
    if(!r)return false;
    game={...game,ownerRequests:getRequests(game).map(x=>x.id===r.id?{...x,shown:true}:x)};
-   persist();renderAll();openPanel('notifications');
-   const target=[...document.querySelectorAll('#notifications .owner-request-card')].find(n=>n.dataset.requestId===r.id);
-   target?.scrollIntoView({block:'nearest'});
+   persist();renderAll();
+   const panel=document.getElementById('owner-request');
+   if(!panel)return false;
+   panel.replaceChildren(card(r,true,'popup'));
+   openPanel('owner-request');
    return true;
   },
   getOutstanding(){return getRequests(game).filter(x=>x.status==='offered'&&game.month<=x.expiresMonth&&owning(game,x));}
