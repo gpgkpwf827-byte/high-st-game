@@ -1,50 +1,42 @@
-HIGH STREET — STAGE 8B.1 CANDIDATE (29 OCTOBER 2026)
+HIGH STREET — Stage 8B.2 CANDIDATE | 29 October 2026
 
-STATUS: Candidate release; not yet uploaded or user-tested.
-BASELINE: User-confirmed Stage 8A.1.
+BASELINE
+Build on your confirmed working Stage 8B.1 deployment. Do NOT remove or replace existing JavaScript economic modules. Do not reset progress.
 
-GITHUB UPLOAD (iPhone Safari)
-1. Open https://github.com/gpgkpwf827-byte/high-st-game
-2. Add/replace these three files in the repository ROOT (same folder as existing app.js):
-   - index.html (REPLACE existing)
-   - stage8b1.css (NEW)
-   - stage8b1.js (NEW)
-3. Do NOT remove or replace any other file, particularly app.js, challenge.js,
-   developments.js, stage2.css or the simulation modules.
-4. Commit all three changes, then open GitHub Pages in Safari and reload.
-5. Verify header and footer both read Stage 8B.1. If you see 8A.1, check publishing/cache.
+UPLOAD ONLY THESE THREE FILES TO THE REPOSITORY ROOT
+1. index.html      REPLACE existing index.html
+2. stage8b2.css    ADD new file
+3. stage8b2.js     ADD new file
+
+Leave stage8b1.css, stage8b1.js, app.js and all simulation files exactly as they are.
+Do not upload UPLOAD_AND_TEST.txt unless you want to keep release notes in GitHub.
+Wait for GitHub Pages deployment, then reload the page in Safari. Page title/header/footer should show Stage 8B.2. If old files appear, close the tab and reopen with ?v=8b2 at the end of the URL.
 
 WHAT CHANGED
-- Street-first home: collapses four large town KPI cards/goal strip visually.
-- Persistent Town, Council, Businesses, Reports bottom tabs.
-- Businesses tab lists the actual current 12 premises; All/Occupied/Vacant filters.
-- Council and Reports tabs provide shortcuts into the original working panels.
-- Existing footfall detail remains accessible from Reports -> Performance.
-- Existing slide-up panels remain unchanged (expanding shop sheets is Stage 8B.2).
-- All calculations, save key, decisions and monthly behaviours remain unchanged.
+- Expandable Recovery Objectives tracker directly above the street. Collapsed by default; 3 progress bars; current figures, not final victory guarantees.
+- Removed the redundant Town Indicators link at the bottom of Town (other town economy indicators remain accessible via Reports).
+- Shop panels start at a compact 76% screen-height and offer Expand/Compact toggle. Existing financial overview, expandable detailed finances, grants, vacancies and tenant controls remain unchanged.
+- Index stylesheet/script references have a new version marker; no save key or economic rules changed.
 
-IPHONE QA
-[ ] Header Stage 8B.1, correct budget, month, occupancy and APs.
-[ ] Four bottom tabs visible, no overlap with the floating Advance control.
-[ ] Town street swipes; north/south shops align; 12 shops still tappable.
-[ ] Businesses > All/Occupied/Vacant: 12 / 7 / 5 at start.
-[ ] Tap an occupied and vacant Businesses row; original detail panels work.
-[ ] Council tab > Services: rates/cleaning/lighting and investment controls work.
-[ ] Reports tab > Performance, Local Economy, Current Issues, monthly report.
-[ ] Notifications bell works, and the bottom nav does not overlay the modal.
-[ ] Advance once: exactly one month; budget and financials correct.
-[ ] Required month-4/8 event still blocks, optional offers stay optional.
-[ ] Refresh a previous 8A.1 saved game: it is preserved, not restarted.
-[ ] Check later-opened/closed tenants refresh the Businesses list.
-[ ] Restart, Month-12 results, archived notifications work.
-[ ] Small portrait and landscape: no horizontal page overflow or hidden controls.
+IPHONE SAFARI TESTS
+[ ] On the Town tab, the Recovery Objectives card appears above the street and expands/collapses.
+[ ] Occupancy / 10 needed, footfall / 10,000 and stable proportion / 70% are correct for your current game. Before the first completed month, stable shows 'After Month 1'.
+[ ] The old Town Indicators button/link is gone from the bottom of Town; Reports still has Performance, Local economy, Current issues, Monthly report, Recovery objectives.
+[ ] Tap an occupied shop: shop overview/profit/cash appear, Expand grows the sheet, Compact shrinks it; detailed finances/debug and grant controls work.
+[ ] Tap a vacant unit via the Town street AND Businesses tab: applicants, costs and action buttons remain accessible.
+[ ] Close the shop panel and navigate all four bottom tabs; advance button still works on Town.
+[ ] Advance a month: the recovery card refreshes its values; no duplicate cards appear.
+[ ] Mandatory events, notifications, opportunity offers and Council controls continue to work.
+[ ] Reload Safari: same month, money, business changes, and history; grants and opportunities remain saved.
+[ ] End Month 12: final results work and remain reopenable; Restart works after confirmation.
+
+LIMITATIONS
+Release is a candidate until your Safari tests. No full phone UI verification is possible here. No finance formulas, shop outcomes, event rules or save format were intentionally changed. Static checks validate the new scripts, not every interaction in the full game.
 
 ROLLBACK
-Revert index.html to its Stage 8A.1 GitHub version. The new CSS/JS files
-are not loaded by old index.html and may safely remain unused. Do not clear
-Safari localStorage. The original save key has NOT been changed.
+Restore the prior 8B.1 index.html from GitHub commit history. New stage8b2.js/css files may remain unused; removing them is optional. Existing saved games should not require migration.
 
-MASTER REFERENCE DELTAS
-8A.1 user-confirmed baseline; Stage 8B.1 candidate interface-only changes.
-No new economy, financing, event or victory mechanics. Mark implemented
-and user-tested ONLY after the iPhone checklist passes.
+MASTER REFERENCE DELTA (once tested)
+- Mark Stage 8B.1 accepted and 8B.2 user-tested.
+- Record recovery tracker in Town, hidden duplicate Town Indicators link and expand/compact shop sheet.
+- Confirm unchanged underlying game logic, finance disclosures, council choices and browser save key.
