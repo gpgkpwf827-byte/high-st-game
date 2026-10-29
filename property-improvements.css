@@ -1,0 +1,13 @@
+/* Stage 10A.2: standalone vacancy-grant presentation, reusing existing palette. */
+.hs10-improvement-panel{margin:14px 0;padding:13px;border:1px solid #d0dfce;border-radius:13px;background:#f0f6ee}
+.hs10-improvement-panel h4{margin:0 0 7px;font-size:16px;color:#204e36}
+.hs10-improvement-panel p{font-size:12px;line-height:1.5;margin:6px 0}
+.hs10-muted{color:#4f6f5d}
+.hs10-condition-brief{display:grid;gap:5px;margin:10px 0 12px;padding:10px;background:white;border-radius:9px}
+.hs10-condition-brief strong{font-size:13px}.hs10-condition-brief small{font-size:11px;color:#4f6f5d}
+.hs10-grant-option{display:grid;gap:5px;border-top:1px solid #d2dfd0;padding:13px 0 7px}
+.hs10-grant-option strong{font-size:13px;color:#214b36}
+.hs10-grant-option p{margin:0}.hs10-grant-option small{font-size:11px;color:#455d4b;line-height:1.45}
+.hs10-grant-option button{min-height:44px;margin-top:5px;border:0;border-radius:9px;background:#2c7355;color:white;padding:10px;font-size:13px;font-weight:750;cursor:pointer;text-align:center}
+.hs10-grant-option button:disabled{background:#96a49c;cursor:not-allowed}
+.hs10-grant-option .hs10-unavailable{color:#86563e}.hs10-used{font-weight:650}
