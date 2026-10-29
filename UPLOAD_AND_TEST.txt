@@ -1,0 +1,50 @@
+HIGH STREET — STAGE 8B.1 CANDIDATE (29 OCTOBER 2026)
+
+STATUS: Candidate release; not yet uploaded or user-tested.
+BASELINE: User-confirmed Stage 8A.1.
+
+GITHUB UPLOAD (iPhone Safari)
+1. Open https://github.com/gpgkpwf827-byte/high-st-game
+2. Add/replace these three files in the repository ROOT (same folder as existing app.js):
+   - index.html (REPLACE existing)
+   - stage8b1.css (NEW)
+   - stage8b1.js (NEW)
+3. Do NOT remove or replace any other file, particularly app.js, challenge.js,
+   developments.js, stage2.css or the simulation modules.
+4. Commit all three changes, then open GitHub Pages in Safari and reload.
+5. Verify header and footer both read Stage 8B.1. If you see 8A.1, check publishing/cache.
+
+WHAT CHANGED
+- Street-first home: collapses four large town KPI cards/goal strip visually.
+- Persistent Town, Council, Businesses, Reports bottom tabs.
+- Businesses tab lists the actual current 12 premises; All/Occupied/Vacant filters.
+- Council and Reports tabs provide shortcuts into the original working panels.
+- Existing footfall detail remains accessible from Reports -> Performance.
+- Existing slide-up panels remain unchanged (expanding shop sheets is Stage 8B.2).
+- All calculations, save key, decisions and monthly behaviours remain unchanged.
+
+IPHONE QA
+[ ] Header Stage 8B.1, correct budget, month, occupancy and APs.
+[ ] Four bottom tabs visible, no overlap with the floating Advance control.
+[ ] Town street swipes; north/south shops align; 12 shops still tappable.
+[ ] Businesses > All/Occupied/Vacant: 12 / 7 / 5 at start.
+[ ] Tap an occupied and vacant Businesses row; original detail panels work.
+[ ] Council tab > Services: rates/cleaning/lighting and investment controls work.
+[ ] Reports tab > Performance, Local Economy, Current Issues, monthly report.
+[ ] Notifications bell works, and the bottom nav does not overlay the modal.
+[ ] Advance once: exactly one month; budget and financials correct.
+[ ] Required month-4/8 event still blocks, optional offers stay optional.
+[ ] Refresh a previous 8A.1 saved game: it is preserved, not restarted.
+[ ] Check later-opened/closed tenants refresh the Businesses list.
+[ ] Restart, Month-12 results, archived notifications work.
+[ ] Small portrait and landscape: no horizontal page overflow or hidden controls.
+
+ROLLBACK
+Revert index.html to its Stage 8A.1 GitHub version. The new CSS/JS files
+are not loaded by old index.html and may safely remain unused. Do not clear
+Safari localStorage. The original save key has NOT been changed.
+
+MASTER REFERENCE DELTAS
+8A.1 user-confirmed baseline; Stage 8B.1 candidate interface-only changes.
+No new economy, financing, event or victory mechanics. Mark implemented
+and user-tested ONLY after the iPhone checklist passes.
