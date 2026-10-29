@@ -33,6 +33,13 @@
       const art=p.occupied?(styles[p.type]||fallback):['#88877e','#dedbd0','#62635c','TO LET',''];
       const variant=(Number(p.id)-1)%4;
       button.classList.add('hs9-building','hs9-shell-'+variant);
+      // Vacancy deterioration is visual only; existing property.js remains authoritative.
+      if(!p.occupied){
+        const condition=typeof premiseCondition==='function'?premiseCondition(game,p.id):'Good';
+        const key=['Good','Fair','Poor'].includes(condition)?condition.toLowerCase():'good';
+        button.classList.add('hs9-vacancy-'+key);
+        button.dataset.vacancyCondition=condition;
+      }
       button.style.setProperty('--hs-wall',art[0]);
       button.style.setProperty('--hs-wall-light',art[1]);
       button.style.setProperty('--hs-trim',art[2]);
@@ -48,6 +55,16 @@
       const awning=node('span','hs9-awning');awning.setAttribute('aria-hidden','true');
       const doorway=node('span','hs9-doorway');doorway.setAttribute('aria-hidden','true');
       front.prepend(sign,awning,doorway);
+      if(!p.occupied){
+        const condition=button.dataset.vacancyCondition;
+        // Decorative overlays are aria-hidden and never capture taps.
+        const wear=node('span','hs9-vacancy-wear');wear.setAttribute('aria-hidden','true');
+        const boards=node('span','hs9-vacancy-boards');boards.setAttribute('aria-hidden','true');
+        const weeds=node('span','hs9-vacancy-weeds');weeds.setAttribute('aria-hidden','true');
+        front.append(wear,boards,weeds);
+        sign.textContent='TO LET'; // Retain legible availability across all condition levels.
+        button.setAttribute('aria-label',button.getAttribute('aria-label')+', '+condition+' condition');
+      }
       // Existing shop icon, name, category, health and accessibility labels remain intact.
       // Vacancy condition treatments are reserved for Stage 9A.2.
     });

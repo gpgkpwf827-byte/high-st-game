@@ -86,3 +86,63 @@
 }
 @media(max-width:390px){.street-viewport .hs9-building .shop-name{font-size:11px;}}
 @media(prefers-reduced-motion:reduce){.street-viewport .shop.hs9-building{transition:none;}}
+
+
+/* Stage 9A.2 — visual-only Good / Fair / Poor vacant property conditions.
+   property.js decides the thresholds; none of these layers intercept shop taps. */
+.street-viewport .hs9-building.vacant .hs9-vacancy-wear,
+.street-viewport .hs9-building.vacant .hs9-vacancy-boards,
+.street-viewport .hs9-building.vacant .hs9-vacancy-weeds {
+  position:absolute;pointer-events:none;display:block;z-index:6;
+}
+/* Good: the clean To Let frontage from 9A.1 is intentionally retained. */
+.street-viewport .hs9-vacancy-good .hs9-vacancy-wear,
+.street-viewport .hs9-vacancy-good .hs9-vacancy-boards,
+.street-viewport .hs9-vacancy-good .hs9-vacancy-weeds {display:none!important;}
+/* Fair: muted paint, faint window dirt, small cracks and a weed at the base. */
+.street-viewport .hs9-vacancy-fair .hs9-upper {filter:saturate(.48) brightness(.95);}
+.street-viewport .hs9-vacancy-fair .front {background:#c8c4b5!important;border-color:#74766d!important;}
+.street-viewport .hs9-vacancy-fair .front:before,
+.street-viewport .hs9-vacancy-fair .front:after {filter:brightness(.85);}
+.street-viewport .hs9-vacancy-fair .hs9-sign {background:#72746b!important;color:#e6dfd0!important;}
+.street-viewport .hs9-vacancy-fair .hs9-vacancy-wear {
+  inset:37px 0 1px;opacity:.55;
+  background:linear-gradient(125deg,transparent 0 19%,#766f6155 20%,transparent 22% 100%),
+             radial-gradient(ellipse 5px 7px at 9% 87%,#81796b8c 0 45%,transparent 55%),
+             radial-gradient(ellipse 8px 4px at 92% 65%,#716d6280 0 45%,transparent 55%);
+}
+.street-viewport .hs9-vacancy-fair .hs9-vacancy-boards {display:none!important;}
+.street-viewport .hs9-vacancy-fair .hs9-vacancy-weeds {
+  bottom:-2px;left:6%;width:14px;height:13px;z-index:7;
+  background:linear-gradient(68deg,transparent 38%,#667b58 40% 48%,transparent 50%),
+             linear-gradient(112deg,transparent 38%,#788b62 40% 48%,transparent 50%);
+}
+/* Poor: markedly deteriorated frontage, boarded glass, cracks and weeds.
+   Keep the sign and central door visible, rather than covering the whole shop. */
+.street-viewport .hs9-vacancy-poor .hs9-upper {filter:grayscale(.58) brightness(.85);}
+.street-viewport .hs9-vacancy-poor .front {background:#aaa79b!important;border-color:#62675f!important;}
+.street-viewport .hs9-vacancy-poor .front:before,
+.street-viewport .hs9-vacancy-poor .front:after {filter:grayscale(.7) brightness(.72);}
+.street-viewport .hs9-vacancy-poor .hs9-sign {background:#545c55!important;color:#f1e8d3!important;}
+.street-viewport .hs9-vacancy-poor .hs9-awning {filter:saturate(.5) brightness(.85);}
+.street-viewport .hs9-vacancy-poor .hs9-vacancy-boards {
+  left:4%;right:4%;top:39px;bottom:5px;
+  background:repeating-linear-gradient(to bottom,transparent 0 3px,#806e59 4px 11px,#574e4270 11px 12px,transparent 12px 16px);
+  clip-path:polygon(0 0,34% 0,34% 100%,0 100%,0 0,66% 0,100% 0,100% 100%,66% 100%,66% 0);
+  opacity:.93;
+}
+.street-viewport .hs9-vacancy-poor .hs9-vacancy-wear {
+  inset:32px 0 0;
+  background:linear-gradient(140deg,transparent 0 12%,#564f447e 13% 14%,transparent 15%),
+             linear-gradient(40deg,transparent 0 78%,#564f447e 79% 80%,transparent 81%),
+             radial-gradient(ellipse 9px 5px at 83% 78%,#514e4588 0 55%,transparent 65%);
+}
+.street-viewport .hs9-vacancy-poor .hs9-vacancy-weeds {
+  bottom:-3px;left:4%;width:25px;height:19px;z-index:7;
+  background:linear-gradient(65deg,transparent 42%,#546e4e 44% 51%,transparent 53%),
+             linear-gradient(112deg,transparent 39%,#6b8656 41% 48%,transparent 50%),
+             linear-gradient(90deg,transparent 46%,#4e724c 48% 53%,transparent 55%);
+}
+.street-viewport .hs9-building.vacant .hs9-vacancy-wear,
+.street-viewport .hs9-building.vacant .hs9-vacancy-boards,
+.street-viewport .hs9-building.vacant .hs9-vacancy-weeds {pointer-events:none;}
