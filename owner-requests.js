@@ -229,11 +229,16 @@
   let working=false;
   new MutationObserver(()=>{if(working)return;working=true;try{decorateBusinessRows();}finally{working=false;}}).observe(businessView,{childList:true,subtree:true});
  }
- // Existing strategic offer pop-ups remain first. The owner queue runs only
- // after mandatory council decisions and all unseen strategic offers.
- function firstUnseenOwner(){return getRequests(game).find(r=>r.status==='offered'&&game.month<=r.expiresMonth&&owning(game,r)&&!r.shown);}
+ // Stage 9B.1.2: one explicit, transient monthly presentation queue.
+ // The actual decisions, outcomes and 'seen' flags remain in the original save.
+ // Closing a card means "seen", never "declined".
+ let presentingMonth=false;
+ let eventPresented=false;
+ let openedPanelType=null;
+ function firstUnseenOwner(){
+  return getRequests(game).find(r=>r.status==='offered'&&game.month<=r.expiresMonth&&owning(game,r)&&!r.shown);
+ }
  function showOwnerOffer(){
-  if(challengeFinished(game)||pendingEvent(game))return false;
   const r=firstUnseenOwner();if(!r)return false;
   game={...game,ownerRequests:getRequests(game).map(x=>x.id===r.id?{...x,shown:true}:x)};
   persist();renderAll();openPanel('notifications');
@@ -241,22 +246,59 @@
   target?.scrollIntoView({block:'nearest'});
   return true;
  }
+ function showUnseenStrategic(){
+  const seen=Array.isArray(game.seenStrategicOffers)?game.seenStrategicOffers:[];
+  const offer=opportunityEntries(game).find(x=>x.status==='offered'&&game.month>=x.offerMonth&&game.month<=x.expiresMonth&&!seen.includes(x.type));
+  if(!offer)return false;
+  game={...game,seenStrategicOffers:[...seen,offer.type]};
+  persist();showOffer(offer.type);return true;
+ }
+ function nextPresentation(){
+  if(!modal.hidden||challengeFinished(game))return;
+  if(presentingMonth&&!eventPresented&&pendingEvent(game)){
+   eventPresented=true;openedPanelType='event';openPanel('event');return;
+  }
+  if(showUnseenStrategic()){openedPanelType='strategic';return;}
+  if(showOwnerOffer()){openedPanelType='owner';return;}
+  presentingMonth=false;openedPanelType=null;
+ }
+ // Suppress the old event-handler's eager strategic popup while a monthly
+ // report/decision sequence is active; the queue owns its own timing.
  if(typeof openNewStrategicOffer==='function'){
-  const previousStrategic=openNewStrategicOffer;
-  openNewStrategicOffer=function(){return previousStrategic.apply(this,arguments)||showOwnerOffer();};
+  const originalOpenStrategic=openNewStrategicOffer;
+  openNewStrategicOffer=function(){
+   if(presentingMonth)return false;
+   return originalOpenStrategic.apply(this,arguments)||(!pendingEvent(game)&&showOwnerOffer());
+  };
  }
  if(typeof closePanel==='function'){
   const previousClose=closePanel;
-  closePanel=function(){const result=previousClose.apply(this,arguments);
-   // Defer until synchronous mandatory-event and strategic handlers finish.
-   queueMicrotask(()=>{if(!modal.hidden||challengeFinished(game)||pendingEvent(game))return;
-    openNewStrategicOffer();
-   });return result;
+  closePanel=function(){
+   const wasOpen=!modal.hidden;
+   const result=previousClose.apply(this,arguments);
+   if(wasOpen&&presentingMonth){
+    // A microtask lets any current decision handler finish saving its choice.
+    queueMicrotask(()=>{if(modal.hidden)nextPresentation();});
+   }
+   return result;
   };
  }
- // Opening a month's report after the base advance flow requires a queue check:
- // wrap runChallengeMonth result to detect month changes without opening a modal
- // mid-simulation; the original Advance handler handles presentation priority.
+ // Capture Advance before the legacy button handler, which otherwise opens
+ // an event/strategic offer ahead of the monthly report.
+ const advanceButton=document.getElementById('advance');
+ if(advanceButton){
+  advanceButton.addEventListener('click',event=>{
+   event.stopImmediatePropagation();
+   if(pendingEvent(game)){openPanel('event');return;}
+   if(challengeFinished(game))return;
+   try{
+    game=runChallengeMonth(game);persist();renderAll();
+    if(challengeFinished(game)){presentingMonth=false;openPanel('final');return;}
+    presentingMonth=true;eventPresented=false;openedPanelType='report';
+    openPanel('report');
+   }catch(e){alert(e.message);}
+  },true);
+ }
  // Also initialise fresh state after the existing Restart button is used.
  if(typeof startingGame==='function'){const oldStartingGame=startingGame;startingGame=function(){return initialise(oldStartingGame.apply(this,arguments));};}
  // Legacy games get a new current-month start only; no historical offers are fabricated.
