@@ -146,3 +146,54 @@
 .street-viewport .hs9-building.vacant .hs9-vacancy-wear,
 .street-viewport .hs9-building.vacant .hs9-vacancy-boards,
 .street-viewport .hs9-building.vacant .hs9-vacancy-weeds {pointer-events:none;}
+
+
+/* Stage 9A.3 — council decisions visualised on the existing road/pavement.
+   Decorative only: no new premises, no blocking clicks, no economic logic. */
+.street-viewport .street .hs9-streetscape{
+  position:absolute;inset:0;z-index:2;pointer-events:none;overflow:visible;
+}
+.street-viewport .hs9-furniture{position:absolute;display:block;pointer-events:none;box-sizing:border-box;}
+.street-viewport .hs9-at-left{left:18%;}
+.street-viewport .hs9-at-middle{left:52%;}
+.street-viewport .hs9-at-right{left:84%;}
+.street-viewport .hs9-at-transport{left:70%;}
+/* Litter and municipal bins on the top pavement, clear of shop controls. */
+.street-viewport .hs9-litter{top:5px;width:18px;height:6px;
+  background:linear-gradient(16deg,transparent 0 20%,#7b776a 21% 30%,transparent 31% 100%),
+    linear-gradient(135deg,transparent 0 60%,#e5d4ae 61% 74%,transparent 75%);opacity:.8;}
+.street-viewport .hs9-bin{top:-4px;width:12px;height:17px;border-radius:2px 2px 3px 3px;
+  background:linear-gradient(90deg,#436e65,#678a7b 60%,#3f615d);border-top:3px solid #344e4b;
+  box-shadow:0 2px 1px #3a4e3b33;}
+.street-viewport .hs9-planter{top:-1px;width:27px;height:13px;border-radius:2px 2px 5px 5px;
+  background:linear-gradient(90deg,#8b6d5a,#bf997b 50%,#8d6d58);}
+.street-viewport .hs9-planter:before{content:'';position:absolute;left:3px;right:3px;bottom:9px;height:18px;
+  background:radial-gradient(circle at 16% 75%,#729d70 0 6px,transparent 7px),
+    radial-gradient(circle at 47% 40%,#598c62 0 7px,transparent 8px),
+    radial-gradient(circle at 80% 75%,#80a36c 0 7px,transparent 8px);}
+/* Lanterns project up from the pavement; kept away from the shop buttons. */
+.street-viewport .hs9-lamp{top:-29px;width:4px;height:40px;border-radius:3px;
+  background:linear-gradient(90deg,#344b4a,#74817a);}
+.street-viewport .hs9-lamp:before{content:'';position:absolute;bottom:34px;left:-6px;width:16px;height:10px;
+  background:#f3e9b6;border:2px solid #455a56;box-shadow:0 0 0 2px #e7dec799;border-radius:7px 7px 2px 2px;}
+.street-viewport .street[data-hs9-lighting="extended"] .hs9-lamp:before{background:#fff0ba;box-shadow:0 0 6px 2px #f7edbd88;}
+/* Bus shelter is small and sits on pavement: no premise is displaced. */
+.street-viewport .hs9-bus-stop{top:-18px;width:63px;height:30px;transform:translateX(-50%);}
+.street-viewport .hs9-bus-canopy{position:absolute;left:0;top:0;width:50px;height:6px;
+  background:linear-gradient(#597b77,#345956);border-radius:4px 5px 1px 1px;}
+.street-viewport .hs9-bus-canopy:before,.street-viewport .hs9-bus-canopy:after{content:'';
+  position:absolute;top:5px;width:3px;height:23px;background:#466a65;}
+.street-viewport .hs9-bus-canopy:before{left:4px;}.street-viewport .hs9-bus-canopy:after{right:4px;}
+.street-viewport .hs9-bus-bench{position:absolute;left:11px;top:18px;width:30px;height:4px;
+  background:#ad8064;box-shadow:0 5px #597770;border-radius:2px;}
+.street-viewport .hs9-bus-post{position:absolute;right:1px;top:1px;width:3px;height:28px;background:#465c58;}
+.street-viewport .hs9-bus-post:before{content:'BUS';position:absolute;left:-9px;top:0;width:21px;height:12px;
+  background:#e9f4ee;color:#315d55;border:1px solid #42685f;border-radius:3px;
+  font:800 7px/12px system-ui,sans-serif;text-align:center;}
+/* Free parking is signposted beyond the visible street; no parking bays. */
+.street-viewport .hs9-parking-sign{top:-20px;width:4px;height:32px;background:#586964;}
+.street-viewport .hs9-parking-sign:before{content:'P  →';position:absolute;top:0;left:-12px;
+  width:37px;height:19px;border-radius:3px;background:#2e6da6;color:#fff;border:1px solid #f1f4ee;
+  font:800 12px/18px system-ui,sans-serif;text-align:center;white-space:nowrap;}
+.street-viewport .street .road-label{z-index:4;}
+.street-viewport .street .street-scroll-cue{z-index:5;}

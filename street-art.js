@@ -1,4 +1,4 @@
-/* Stage 9A.1 — visual-only storefront decorator. No economic or save state. */
+/* Stage 9A.3 — visual-only shopfront and council streetscape artwork. No economy or save changes. */
 (function () {
   'use strict';
   const styles = {
@@ -66,12 +66,66 @@
         button.setAttribute('aria-label',button.getAttribute('aria-label')+', '+condition+' condition');
       }
       // Existing shop icon, name, category, health and accessibility labels remain intact.
-      // Vacancy condition treatments are reserved for Stage 9A.2.
+      // Condition styling is driven by property.js; council visuals use the road layer.
     });
+  }
+  // Street furniture is decorative, uses only the existing council choices, and
+  // lives within the existing road element. No new shops or saved properties.
+  function renderStreetscape(){
+    if(typeof game==='undefined')return;
+    const road=document.querySelector('.street-viewport .street');
+    if(!road)return;
+    const policy=typeof councilPolicies==='function'?councilPolicies(game):
+      (game.councilPolicies||{cleaning:'basic',lighting:'basic'});
+    const cleaning=['basic','standard','enhanced'].includes(policy.cleaning)?policy.cleaning:'basic';
+    const lighting=['basic','improved','extended'].includes(policy.lighting)?policy.lighting:'basic';
+    road.dataset.hs9Cleaning=cleaning;
+    road.dataset.hs9Lighting=lighting;
+    const transport=game.transportChoice==='bus'||game.transportChoice==='parking'?game.transportChoice:'none';
+    road.dataset.hs9Transport=transport;
+    // Rebuild just the dedicated decorative layer, preserving road label,
+    // scroll cue, tree nodes, existing interactions and scrollLeft.
+    road.querySelector('.hs9-streetscape')?.remove();
+    const layer=node('div','hs9-streetscape');
+    layer.setAttribute('aria-hidden','true');
+    const item=(type,position)=>{
+      const el=node('span','hs9-furniture hs9-'+type+' hs9-at-'+position);
+      layer.append(el);return el;
+    };
+    if(cleaning==='basic'){
+      item('litter','left');item('litter','right');
+    }else{
+      item('bin','left');
+      if(cleaning==='enhanced'){
+        item('planter','middle');item('planter','right');
+      }
+    }
+    if(lighting!=='basic'){
+      item('lamp','left');item('lamp','right');
+      if(lighting==='extended')item('lamp','middle');
+    }
+    if(transport==='bus'){
+      // One compact pavement shelter, without taking a premise slot.
+      const stop=item('bus-stop','transport');
+      stop.append(node('span','hs9-bus-canopy'),node('span','hs9-bus-bench'),node('span','hs9-bus-post'));
+    }else if(transport==='parking'){
+      // Signs indicate parking off-screen: no impossible on-street car park.
+      item('parking-sign','transport');
+    }
+    road.append(layer);
+  }
+  if(typeof renderAll==='function'){
+    const previousRenderAll=renderAll;
+    renderAll=function(){
+      const result=previousRenderAll.apply(this,arguments);
+      renderStreetscape();
+      return result;
+    };
   }
   if(typeof renderShops==='function'){
     const original=renderShops;
     renderShops=function(){const result=original.apply(this,arguments);decorate();return result;};
   }
   decorate();
+  renderStreetscape();
 })();
