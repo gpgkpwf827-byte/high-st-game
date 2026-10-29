@@ -1,9 +1,10 @@
-/* Stage 9B.1 — optional owner requests. No fixed overlays or street hit targets. */
+/* Stage 9C.4 — consolidated owner requests and disclosure styling.
+   Existing visual values retained; economic logic and modal behaviour unchanged. */
 .owner-request-section{margin:14px 0;padding:11px 0;border-top:1px solid #dce6da}
 .owner-request-section h4{margin:0 0 9px;font-size:15px;color:#294c3b}
-.owner-request-card{border:1px solid #d5e2d3;background:#f8faf5;border-radius:12px;padding:12px;margin:9px 0}
+.owner-request-card{border:1px solid #d5e2d3;background:#f8faf5;border-radius:12px;padding:10px;margin:7px 0}
 .owner-request-card strong{display:block;font-size:13px;line-height:1.45}
-.owner-request-card p{font-size:12px;line-height:1.5;margin:7px 0!important;color:#43584a}
+.owner-request-card p{font-size:12px;line-height:1.35;margin:4px 0!important;color:#43584a}
 .owner-request-card .owner-request-meta{font-size:11px;color:#647c69}
 .owner-request-actions{display:grid;gap:7px;margin-top:10px}
 .owner-request-actions button{font:inherit;font-size:12px;font-weight:750;padding:11px;border-radius:9px;background:white;border:1px solid #a9c8b5;color:#285d46;min-height:44px;cursor:pointer}
@@ -11,9 +12,7 @@
 .owner-request-actions button:disabled{opacity:.48;cursor:not-allowed}
 .owner-request-actions button:focus-visible{outline:3px solid #1f6a8d;outline-offset:2px}
 
-/* 9B.1 revised: compact, one-preview-at-a-time option selector */
-.owner-request-card{padding:10px;margin:7px 0}
-.owner-request-card p{margin:4px 0!important;line-height:1.35}
+/* Compact, one-preview-at-a-time option selector */
 .owner-request-card .owner-request-description{font-size:12px}
 .owner-request-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
 .owner-request-option{min-height:40px;padding:5px 3px;border:1px solid #bbcebe;border-radius:8px;background:#fff;color:#2b5a47;font-weight:700;font-size:11px;cursor:pointer}
@@ -25,9 +24,7 @@
 .owner-request-confirm:disabled{opacity:.5}
 .owner-request-option:focus-visible,.owner-request-confirm:focus-visible{outline:3px solid #216a8b;outline-offset:2px}
 
-/* Stage 9B.1.1 — compact combined shop support and request indicator. */
-.owner-support-disclosure{margin:12px 0;border:1px solid #d5e2d3;border-radius:12px;background:#fbfcf9;overflow:hidden}
-.owner-support-disclosure>summary{min-height:46px;padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;color:#294d3c;cursor:pointer;list-style-position:inside}
+/* Combined shop support and request indicator */
 .owner-support-disclosure>summary:focus-visible{outline:3px solid #216a8b;outline-offset:-3px}
 .owner-support-count{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:22px;height:22px;padding:0 6px;background:#2f7355;color:white;border-radius:999px;font-size:12px}
 .owner-support-body{padding:0 10px 10px}
@@ -39,26 +36,15 @@
 .owner-support-body .owner-grant-condensed button{min-height:40px;margin-top:5px}
 .owner-business-request-badge{margin-left:auto;padding:4px 7px;border-radius:99px;background:#dfeddf;color:#286046;font-size:10px;font-weight:800;white-space:nowrap}
 
-/* 9B.1.3 — consistent detail disclosure headers and explicit chevrons. */
-#details .shop-meta>summary,
-#details .owner-support-disclosure>summary,
-#details .finance-collapse>summary{font-size:14px!important;font-weight:700!important;line-height:1.3!important;color:#23543d!important;min-height:46px;display:flex;align-items:center;gap:8px;padding:12px!important;cursor:pointer;list-style:none}
+/* Shared disclosure marker suppression (Safari). */
 #details .shop-meta>summary::-webkit-details-marker,
 #details .owner-support-disclosure>summary::-webkit-details-marker,
 #details .finance-collapse>summary::-webkit-details-marker{display:none}
-#details .shop-meta>summary::after,
-#details .owner-support-disclosure>summary::after,
-#details .finance-collapse>summary::after{content:'';display:inline-block;width:9px;height:9px;box-sizing:border-box;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);flex:0 0 auto;margin:0 5px 4px auto;transition:transform .16s ease,margin .16s ease}
-#details .shop-meta[open]>summary::after,
-#details .owner-support-disclosure[open]>summary::after,
-#details .finance-collapse[open]>summary::after{transform:rotate(225deg);margin-bottom:-4px}
-#details .owner-support-count{margin-left:auto}
-#details .owner-support-count+span{margin-left:0}
 /* The existing sheet size toggle now operates on any open panel. */
 .modal-sheet:not(.b2-shop-sheet){transition:height .2s ease}
 .modal-sheet:not(.b2-shop-sheet).b2-expanded{height:94dvh;max-height:94dvh}
 
-/* Stage 9C.2.1: one consistent visual contract for all three shop disclosures.
+/* Shared visual contract for all three shop disclosures.
    Only the shared outer surface and header change; existing contents are untouched. */
 #details .shop-meta,
 #details .owner-support-disclosure,
