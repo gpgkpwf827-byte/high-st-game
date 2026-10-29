@@ -57,3 +57,60 @@
 /* The existing sheet size toggle now operates on any open panel. */
 .modal-sheet:not(.b2-shop-sheet){transition:height .2s ease}
 .modal-sheet:not(.b2-shop-sheet).b2-expanded{height:94dvh;max-height:94dvh}
+
+/* Stage 9C.2.1: one consistent visual contract for all three shop disclosures.
+   Only the shared outer surface and header change; existing contents are untouched. */
+#details .shop-meta,
+#details .owner-support-disclosure,
+#details .finance-collapse {
+  box-sizing:border-box!important;
+  width:100%!important;
+  margin:12px 0!important;
+  padding:0!important;
+  border:1px solid #d5e2d3!important;
+  border-radius:12px!important;
+  background:#fbfcf9!important;
+  overflow:hidden!important;
+}
+#details .shop-meta>summary,
+#details .owner-support-disclosure>summary,
+#details .finance-collapse>summary {
+  box-sizing:border-box!important;
+  width:100%!important;
+  min-height:48px!important;
+  margin:0!important;
+  padding:12px 14px!important;
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-start!important;
+  gap:8px!important;
+  font-size:14px!important;
+  font-weight:700!important;
+  line-height:22px!important;
+  text-align:left!important;
+  color:#23543d!important;
+  border:0!important;
+  background:transparent!important;
+  cursor:pointer!important;
+  list-style:none!important;
+}
+#details .shop-meta>summary::after,
+#details .owner-support-disclosure>summary::after,
+#details .finance-collapse>summary::after {
+  content:''!important;
+  margin:0 5px 4px auto!important;
+  width:9px!important;
+  height:9px!important;
+  border-right:2px solid currentColor!important;
+  border-bottom:2px solid currentColor!important;
+  flex:0 0 auto!important;
+  transform:rotate(45deg);
+  transition:transform .16s ease,margin .16s ease;
+}
+#details .shop-meta[open]>summary::after,
+#details .owner-support-disclosure[open]>summary::after,
+#details .finance-collapse[open]>summary::after {
+  transform:rotate(225deg);
+  margin-bottom:-4px!important;
+}
+#details .owner-support-count {margin-left:0!important;}

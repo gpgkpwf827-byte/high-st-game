@@ -190,11 +190,14 @@
   details.querySelectorAll('.owner-request-section').forEach(n=>n.remove());
   const p=currentPremise(game,selectedId);
   const existing=details.querySelector('.owner-support-disclosure');
-  if(!p?.occupied){if(existing){existing.before(grant);existing.remove();}return;}
+  if(!p?.occupied){if(existing){document.getElementById('financials').before(grant);existing.remove();}return;}
   const related=getRequests(game).filter(r=>r.premiseId===p.id&&r.businessName===p.name&&r.offeredMonth<=game.month).slice(-2).reverse();
   const outstanding=related.filter(r=>r.status==='offered'&&game.month<=r.expiresMonth&&owning(game,r));
   const section=existing||el('details',undefined,'owner-support-disclosure');
   if(!existing){grant.before(section);section.append(el('summary'));}
+  // Present Council support first, before the premises and finance disclosures.
+  const premisesDisclosure=details.querySelector('.shop-meta');
+  if(premisesDisclosure&&section.nextElementSibling!==premisesDisclosure)premisesDisclosure.before(section);
   const summary=section.querySelector('summary');summary.replaceChildren();
   summary.append(el('span','Council support & requests'));
   const count=outstanding.length;
