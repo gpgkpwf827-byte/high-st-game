@@ -24,3 +24,17 @@
 .owner-request-confirm{width:100%;min-height:42px;margin-top:5px;padding:9px;border-radius:8px;border:0;background:#2d7254;color:#fff;font-weight:750;cursor:pointer}
 .owner-request-confirm:disabled{opacity:.5}
 .owner-request-option:focus-visible,.owner-request-confirm:focus-visible{outline:3px solid #216a8b;outline-offset:2px}
+
+/* Stage 9B.1.1 — compact combined shop support and request indicator. */
+.owner-support-disclosure{margin:12px 0;border:1px solid #d5e2d3;border-radius:12px;background:#fbfcf9;overflow:hidden}
+.owner-support-disclosure>summary{min-height:46px;padding:12px;display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:13px;font-weight:800;color:#294d3c;cursor:pointer;list-style-position:inside}
+.owner-support-disclosure>summary:focus-visible{outline:3px solid #216a8b;outline-offset:-3px}
+.owner-support-count{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;min-width:22px;height:22px;padding:0 6px;background:#2f7355;color:white;border-radius:999px;font-size:12px}
+.owner-support-body{padding:0 10px 10px}
+.owner-support-subheading{font-size:12px;margin:9px 2px 5px;color:#43634f}
+.owner-support-body .owner-request-card{margin:6px 0}
+.owner-support-body .owner-grant-condensed{margin:8px 0 0;padding:10px;border-radius:9px}
+.owner-support-body .owner-grant-condensed h4{font-size:13px;margin-bottom:4px}
+.owner-support-body .owner-grant-condensed p{margin:4px 0!important;font-size:11px}
+.owner-support-body .owner-grant-condensed button{min-height:40px;margin-top:5px}
+.owner-business-request-badge{margin-left:auto;padding:4px 7px;border-radius:99px;background:#dfeddf;color:#286046;font-size:10px;font-weight:800;white-space:nowrap}

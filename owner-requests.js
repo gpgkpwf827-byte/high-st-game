@@ -37,7 +37,7 @@
   if(!candidates.length)return s;
   const ix=Math.floor(seedNumber(s.ownerRequestSeed,s.month*173+11)*candidates.length);
   const chosen=candidates[ix];
-  const request={id:'owner-'+s.month+'-'+chosen.p.id+'-'+chosen.type,premiseId:chosen.p.id,businessName:chosen.p.name,type:chosen.type,offeredMonth:s.month,expiresMonth:Math.min(lastMonth-1,s.month+1),status:'offered',response:null,success:null,investedAmount:0,pointsUsed:0,outcomeMonth:null};
+  const request={shown:false,id:'owner-'+s.month+'-'+chosen.p.id+'-'+chosen.type,premiseId:chosen.p.id,businessName:chosen.p.name,type:chosen.type,offeredMonth:s.month,expiresMonth:Math.min(lastMonth-1,s.month+1),status:'offered',response:null,success:null,investedAmount:0,pointsUsed:0,outcomeMonth:null};
   return {...s,ownerRequests:[...getRequests(s),request].slice(-30)};
  }
  function advance(s){
@@ -109,7 +109,7 @@
  // Compact selection: only one option's consequence appears at a time.
  // A change of selection does not commit funds or resolve the request.
  function card(r,interactive,source='notifications'){
-  const t=TYPES[r.type];const box=el('section',undefined,'owner-request-card');
+  const t=TYPES[r.type];const box=el('section',undefined,'owner-request-card');box.dataset.requestId=r.id;
   box.append(el('strong',r.businessName+' · '+t.title));
   box.append(el('p',t.description,'owner-request-description'));
   box.append(el('p',statuses[r.status]+' · Month '+r.offeredMonth+(r.status==='offered'?' · Deadline M'+r.expiresMonth:''),'owner-request-meta'));
@@ -172,6 +172,7 @@
    if(!visible.length)section.append(el('p','No requests from business owners yet.'));
    for(const r of visible)section.append(card(r,true,'notifications'));notification.append(section);
   }
+  decorateBusinessRows();
   const bell=document.getElementById('notification');
   if(bell&&open.length){bell.setAttribute('aria-label','Notifications — '+open.length+' owner requests awaiting response');}
  }
@@ -179,12 +180,86 @@
  if(typeof renderAll==='function'){
   const prior=renderAll;renderAll=function(){const result=prior.apply(this,arguments);renderOwnerRequests();return result;};
  }
- if(typeof inspectPremise==='function'){
-  const prior=inspectPremise;inspectPremise=function(){const result=prior.apply(this,arguments);
-   const details=document.getElementById('details');if(details){details.querySelectorAll('.owner-request-section').forEach(n=>n.remove());const related=getRequests(game).filter(r=>r.premiseId===selectedId&&r.offeredMonth<=game.month).slice(-2).reverse();if(related.length){const area=el('section',undefined,'owner-request-section');area.append(el('h4','Owner requests'));for(const r of related)area.append(card(r,true,'details'));details.append(area);}}return result;};
+ // Combine an occupied shop's grant and owner-request information into one
+ // compact disclosure. Existing grant button/handlers are moved, never cloned.
+ function supportSection(){
+  const details=document.getElementById('details');
+  const grant=document.getElementById('grant-section');
+  if(!details||!grant||selectedId===null)return;
+  details.querySelectorAll('.owner-request-section').forEach(n=>n.remove());
+  const p=currentPremise(game,selectedId);
+  const existing=details.querySelector('.owner-support-disclosure');
+  if(!p?.occupied){if(existing){existing.before(grant);existing.remove();}return;}
+  const related=getRequests(game).filter(r=>r.premiseId===p.id&&r.businessName===p.name&&r.offeredMonth<=game.month).slice(-2).reverse();
+  const outstanding=related.filter(r=>r.status==='offered'&&game.month<=r.expiresMonth&&owning(game,r));
+  const section=existing||el('details',undefined,'owner-support-disclosure');
+  if(!existing){grant.before(section);section.append(el('summary'));}
+  const summary=section.querySelector('summary');summary.replaceChildren();
+  summary.append(el('span','Council support & requests'));
+  const count=outstanding.length;
+  if(count){const badge=el('span',String(count),'owner-support-count');badge.setAttribute('aria-label',count+' outstanding owner request'+(count===1?'':'s'));summary.append(badge);}
+  if(!existing){section.open=!!count;}
+  else if(count&&section.dataset.previousPending!=='true')section.open=true;
+  section.dataset.previousPending=String(!!count);
+  const body=section.querySelector('.owner-support-body')||el('div',undefined,'owner-support-body');body.replaceChildren();
+  if(related.length){
+   const heading=el('h4','Owner requests','owner-support-subheading');body.append(heading);
+   for(const r of related)body.append(card(r,true,'details'));
+  }
+  grant.hidden=false;grant.classList.add('owner-grant-condensed');body.append(grant);
+  section.append(body);
  }
+ if(typeof inspectPremise==='function'){
+  const prior=inspectPremise;
+  inspectPremise=function(){const result=prior.apply(this,arguments);supportSection();return result;};
+ }
+ function decorateBusinessRows(){
+  const list=document.querySelector('#b1-businesses .b1-list');if(!list)return;
+  const active=new Set(getRequests(game).filter(r=>r.status==='offered'&&game.month<=r.expiresMonth&&owning(game,r)).map(r=>r.businessName));
+  for(const row of list.querySelectorAll('.b1-list-row')){
+   const title=row.querySelector('strong');const name=title?.textContent;
+   const badge=row.querySelector('.owner-business-request-badge');
+   if(name&&active.has(name)){
+    if(!badge){const n=el('span','Request','owner-business-request-badge');n.setAttribute('aria-label','Outstanding owner request');row.append(n);}
+   }else badge?.remove();
+  }
+ }
+ const businessView=document.getElementById('b1-businesses');
+ if(businessView&&typeof MutationObserver!=='undefined'){
+  let working=false;
+  new MutationObserver(()=>{if(working)return;working=true;try{decorateBusinessRows();}finally{working=false;}}).observe(businessView,{childList:true,subtree:true});
+ }
+ // Existing strategic offer pop-ups remain first. The owner queue runs only
+ // after mandatory council decisions and all unseen strategic offers.
+ function firstUnseenOwner(){return getRequests(game).find(r=>r.status==='offered'&&game.month<=r.expiresMonth&&owning(game,r)&&!r.shown);}
+ function showOwnerOffer(){
+  if(challengeFinished(game)||pendingEvent(game))return false;
+  const r=firstUnseenOwner();if(!r)return false;
+  game={...game,ownerRequests:getRequests(game).map(x=>x.id===r.id?{...x,shown:true}:x)};
+  persist();renderAll();openPanel('notifications');
+  const target=[...document.querySelectorAll('#notifications .owner-request-card')].find(n=>n.dataset.requestId===r.id);
+  target?.scrollIntoView({block:'nearest'});
+  return true;
+ }
+ if(typeof openNewStrategicOffer==='function'){
+  const previousStrategic=openNewStrategicOffer;
+  openNewStrategicOffer=function(){return previousStrategic.apply(this,arguments)||showOwnerOffer();};
+ }
+ if(typeof closePanel==='function'){
+  const previousClose=closePanel;
+  closePanel=function(){const result=previousClose.apply(this,arguments);
+   // Defer until synchronous mandatory-event and strategic handlers finish.
+   queueMicrotask(()=>{if(!modal.hidden||challengeFinished(game)||pendingEvent(game))return;
+    openNewStrategicOffer();
+   });return result;
+  };
+ }
+ // Opening a month's report after the base advance flow requires a queue check:
+ // wrap runChallengeMonth result to detect month changes without opening a modal
+ // mid-simulation; the original Advance handler handles presentation priority.
  // Also initialise fresh state after the existing Restart button is used.
  if(typeof startingGame==='function'){const oldStartingGame=startingGame;startingGame=function(){return initialise(oldStartingGame.apply(this,arguments));};}
  // Legacy games get a new current-month start only; no historical offers are fabricated.
  game=nextOffer(initialise(game));persist();renderAll();
+ if(modal.hidden&&!pendingEvent(game)&&!challengeFinished(game))openNewStrategicOffer();
 })();
