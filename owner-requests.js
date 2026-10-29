@@ -137,7 +137,7 @@
      confirmButton.textContent='Confirm '+x.display.toLowerCase();
      error.textContent=unavailable?(game.councilBudget<t.cost?'Insufficient council funds.':'Requires 1 Action Point.') : '';
     }
-    for(const value of ['permission','support','decline']){
+    for(const value of ['decline','permission','support']){
      const b=el('button',config[value].label,'owner-request-option');b.type='button';
      b.addEventListener('click',()=>{selected=value;refresh();});opts.append(b);buttons[value]=b;
     }
@@ -282,13 +282,15 @@
   if(queueActive)queueMicrotask(nextQueued);
   return result;
  };
- // Reset ALL modal content to its top; give every panel the existing Expand / Compact control.
+ // Reset modal scroll; show Expand / Compact only for the month-end presentation sequence.
  const previousOpen=openPanel;
  openPanel=function(name){
   const result=previousOpen.apply(this,arguments);
   const scroll=modal.querySelector('.modal-scroll');if(scroll)scroll.scrollTop=0;
   const expand=document.getElementById('b2-expand');
-  if(expand)expand.hidden=false;
+  // The button belongs only to automatic month-end presentation cards.
+  // Routine Council/Services/Policies/Businesses panels use their natural layout.
+  if(expand)expand.hidden=!(queueActive&&['report','event','opportunities','notifications'].includes(name))&&name!=='final';
   return result;
  };
  // Intercept Advance before the old monthly presentation handler.

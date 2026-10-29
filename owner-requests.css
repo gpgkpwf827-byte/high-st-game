@@ -48,10 +48,10 @@
 #details .finance-collapse>summary::-webkit-details-marker{display:none}
 #details .shop-meta>summary::after,
 #details .owner-support-disclosure>summary::after,
-#details .finance-collapse>summary::after{content:'⌄';font-size:20px;font-weight:600;line-height:1;margin-left:auto;display:inline-block;transition:transform .12s ease}
+#details .finance-collapse>summary::after{content:'';display:inline-block;width:9px;height:9px;box-sizing:border-box;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(45deg);flex:0 0 auto;margin:0 5px 4px auto;transition:transform .16s ease,margin .16s ease}
 #details .shop-meta[open]>summary::after,
 #details .owner-support-disclosure[open]>summary::after,
-#details .finance-collapse[open]>summary::after{transform:rotate(180deg)}
+#details .finance-collapse[open]>summary::after{transform:rotate(225deg);margin-bottom:-4px}
 #details .owner-support-count{margin-left:auto}
 #details .owner-support-count+span{margin-left:0}
 /* The existing sheet size toggle now operates on any open panel. */
