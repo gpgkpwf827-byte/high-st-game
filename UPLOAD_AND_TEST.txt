@@ -1,29 +1,37 @@
-HIGH STREET — Stage 9B.1 REVISED candidate (first 9B.1 upload; previous candidate NOT DEPLOYED)
+HIGH STREET — STAGE 10B.1 CANDIDATE
+Source: accepted Stage 10A.2.1.
 
-Upload 3 root files: REPLACE index.html; ADD owner-requests.js and owner-requests.css.
-Leave app.js, all existing economic and visual modules, and archive/ unchanged.
-Commit suggestion: Stage 9B.1 revised owner requests
+UPLOAD TO GITHUB REPOSITORY ROOT:
+1. REPLACE index.html.
+2. ADD autonomous-openings.js.
+Do NOT delete any other files. Do NOT alter archive/.
+Suggested commit: Stage 10B.1 autonomous business openings candidate
 
-Card: compact three-choice selector (Permit / Support / Decline); preview only the selected option; confirmation required.
-Decide within Notifications or shop details. Odds vary by request type.
-Seating 60%/82%, £3000, +3%/+5%; Delivery 75%/90%, £2000, +2%/+4%; Shopfront 55%/78%, £4000, +3%/+6%.
-Successful effects last 3 trading months. Decisions resolve in next playable month, seeded and persisted.
-Requests only arise when a future playable month remains; CHALLENGE.lastMonth is the boundary, not a hardcoded 12 in schedule.
-No changes to existing save key/version, archive or gameplay victory rules.
+WHAT CHANGED:
+- Council-selected applicant buttons replaced by a compact independent-business interest panel.
+- After each completed month, eligible vacant properties may be occupied by private businesses.
+- No duplicated category; opening outcome is deterministic for an existing game seed and turn.
+- Business investor funds the fit-out: council budget and AP are never charged.
+- Private-investor affordability and category sensitivity affect opening odds.
+- Immediate occupation after end of a completed turn; trading starts in the following month.
+- The completed month report notes newly opened businesses.
+- Stage 10C's dedicated announcement popup and optional startup grant are NOT included.
 
-SAFARI CHECKS:
-1. Version header/footer read 9B.1 revised; current 9A.4 saved game loads intact.
-2. Request appears in Notifications (month 2 of new game) and shop details.
-3. Selecting each choice changes ONLY the preview; no spending until Confirm.
-4. Permit deducts 0 AP/£0; funded choice deducts correct money + 1 AP; decline free.
-5. Odds, uplift and duration are visible in the concise single preview.
-6. Action can be confirmed directly from shop details; remains in correct shop.
-7. The same offered request persists across Safari refresh; no duplicates.
-8. Outcome resolves after the next month; does not reroll on refresh.
-9. Delivered uplift affects ONLY the associated shop, lasts three trading months.
-10. Ignored request expires; closed owner's unresolved request is cancelled safely.
-11. No new request appears in the final playable month (currently Month 12).
-12. Advance, mandatory event, all tabs, reports, 9A.4 street scrolling/animations and Month 12 results remain working.
-13. Restart works; owner request schedule starts afresh. Archive unaffected.
+IPHONE SAFARI TEST:
+1. Title/footer display Stage 10B.1.
+2. Empty premises show independent-business interest, not Select Tenant buttons.
+3. Vacant-property improvement grants still work.
+4. Advance several months; monitor openings and occasional empty months.
+5. An opening does not charge council budget or action points; normal rates and service costs still change budget.
+6. No duplicate categories are allowed.
+7. New opening is visible on the street and recorded in the monthly report.
+8. Save, refresh Safari and check opened shops persist without rerolling.
+9. Owner requests, mandatory decisions and monthly popup sequence remain working.
+10. Month-12 results, reset, four tabs and Version Archive remain working.
 
-No previous 9B.1 candidate upload required; do NOT upload old candidate.
+LIMITATIONS:
+- No full multi-seed economic balance comparison against real core economy was run here.
+- Base monthly chance .085 per eligible vacant unit (scaled by attractiveness, footfall, spending, condition and private affordability); cap 20% per unit. Provisional.
+- The opening action uses separate business starting cash, not a deduction from starting trading reserves.
+- Existing saves can be used, but continuing a save may not reflect a full fresh Stage 10B playthrough.
+- Earlier Stage 10A.2.1 accepted build remains the rollback point.
