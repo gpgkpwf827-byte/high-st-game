@@ -2,6 +2,10 @@
    Sections retain their original order and behaviour. Simulation and saves unchanged. */
 
 
+/* Stage 9C.2: single presentation hook registry. The existing stage modules register
+   their post-render and modal callbacks without repeatedly replacing global functions. */
+const highStreetUIHooks={render:[],beforeOpen:[],afterOpen:[]};
+
 /* ---- stage8b1.js ---- */
 /* Stage 8B.1 presentation-only adapter. Loaded after app.js. No new save keys or financial rules. */
 (function(){
@@ -75,13 +79,11 @@
  function setExpanded(value){sheet?.classList.toggle('b2-expanded',value);expand.textContent=value?'Compact ↓':'Expand ↑';expand.setAttribute('aria-expanded',String(value));}
  expand.addEventListener('click',()=>setExpanded(!sheet.classList.contains('b2-expanded')));
  // Use existing app entrypoints. No duplicate panel state or saved settings.
- const priorOpen=openPanel;
- openPanel=function(name){priorOpen(name);expand.hidden=name!=='details';sheet?.classList.toggle('b2-shop-sheet',name==='details');setExpanded(false);};
+ highStreetUIHooks.afterOpen.push(name=>{expand.hidden=name!=='details';sheet?.classList.toggle('b2-shop-sheet',name==='details');setExpanded(false);});
  const priorClose=closePanel;
  closePanel=function(){priorClose();sheet?.classList.remove('b2-shop-sheet');setExpanded(false);expand.hidden=true;};
  // When any existing game action rerenders state, update just the new tracker.
- const priorRender=renderAll;
- renderAll=function(){const out=priorRender.apply(this,arguments);updateTracker();return out;};
+ highStreetUIHooks.render.push(updateTracker);
  updateTracker();
 })();
 
@@ -156,10 +158,8 @@ function renderCategory(){
  if(sections.length>3)visible.push(sections[3]);
  for(const node of visible)if(node)node.style.display='';
 }
-const previousOpen=openPanel;
-openPanel=function(name){if(name==='council')renderCategory();return previousOpen(name);};
-const previousRender=renderAll;
-renderAll=function(){const result=previousRender.apply(this,arguments);renderHQ();if(activePanel==='council')renderCategory();return result;};
+highStreetUIHooks.beforeOpen.push(name=>{if(name==='council')renderCategory();});
+highStreetUIHooks.render.push(()=>{renderHQ();if(activePanel==='council')renderCategory();});
 const councilTab=nav.querySelector('[data-tab="council"]');
 if(councilTab)councilTab.addEventListener('click',renderHQ);
 renderHQ();
@@ -218,21 +218,36 @@ function signed(v){return (v>=0?'+':'')+(Number(v)||0).toFixed(2);}
 function line(key,val){const r=el('div','b4-line');r.append(el('span','',key),el('strong','',val));return r;}
 function note(name,value){const n=el('div','b4-note');n.append(el('strong','',name),el('p','',value));return n;}
 const oldReport=renderReport;renderReport=function(){const value=oldReport.apply(this,arguments);buildBriefing();return value;};
-const oldRender=renderAll;renderAll=function(){const result=oldRender.apply(this,arguments);reportHome();return result;};
+highStreetUIHooks.render.push(reportHome);
 const reportsTab=nav.querySelector('[data-tab="reports"]');if(reportsTab)reportsTab.addEventListener('click',reportHome);
 // Existing Advance event handler already opens report automatically unless a required
 // event, strategic opportunity or final result takes priority. Do not interrupt those flows.
 // Reset the shared modal scroll whenever a different shop detail panel is opened.
 // Keep the existing dismiss handlers and 8B.2 expand/compact behaviour intact.
-const beforeShopOpen=openPanel;
-openPanel=function(name){
- const result=beforeShopOpen.apply(this,arguments);
+highStreetUIHooks.afterOpen.push(name=>{
  if(name==='details'){
   const scroll=document.querySelector('#modal .modal-scroll');
   if(scroll)scroll.scrollTop=0;
  }
- return result;
-};
+});
 reportHome();buildBriefing();
 })();
 
+
+/* Stage 9C.2 — one interface render coordinator and one panel-opening bridge.
+   The existing 8B.2 close handler remains unchanged; the accepted 9C.1.1
+   modal controller remains responsible for monthly modal sequencing. */
+(function(){
+ const baseRender=renderAll,baseOpen=openPanel;
+ renderAll=function(){
+  const value=baseRender.apply(this,arguments);
+  for(const hook of highStreetUIHooks.render)hook();
+  return value;
+ };
+ openPanel=function(name){
+  for(const hook of highStreetUIHooks.beforeOpen)hook(name);
+  const value=baseOpen.apply(this,arguments);
+  for(const hook of highStreetUIHooks.afterOpen)hook(name);
+  return value;
+ };
+})();
