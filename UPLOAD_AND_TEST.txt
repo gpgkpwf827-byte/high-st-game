@@ -1,31 +1,29 @@
-HIGH STREET — STAGE 9A.2 CANDIDATE
+HIGH STREET — Stage 9B.1 REVISED candidate (first 9B.1 upload; previous candidate NOT DEPLOYED)
 
-Upload to repository ROOT (not archive/):
-1. index.html       REPLACE existing
-2. street-art.js    REPLACE existing
-3. street-art.css   REPLACE existing
+Upload 3 root files: REPLACE index.html; ADD owner-requests.js and owner-requests.css.
+Leave app.js, all existing economic and visual modules, and archive/ unchanged.
+Commit suggestion: Stage 9B.1 revised owner requests
 
-Other game and archive files remain unchanged. GitHub Pages may require a fresh/private Safari tab to bypass cache; asset versions are now v=9a2. Do not overwrite any saved data.
+Card: compact three-choice selector (Permit / Support / Decline); preview only the selected option; confirmation required.
+Decide within Notifications or shop details. Odds vary by request type.
+Seating 60%/82%, £3000, +3%/+5%; Delivery 75%/90%, £2000, +2%/+4%; Shopfront 55%/78%, £4000, +3%/+6%.
+Successful effects last 3 trading months. Decisions resolve in next playable month, seeded and persisted.
+Requests only arise when a future playable month remains; CHALLENGE.lastMonth is the boundary, not a hardcoded 12 in schedule.
+No changes to existing save key/version, archive or gameplay victory rules.
 
-WHAT CHANGED
-- Visual appearance of vacant units is driven by existing premiseCondition(game,id): Good 0–3 months, Fair 4–8, Poor 9+.
-- Good keeps clean To Let; Fair receives mild paint wear/dirt; Poor displays boards, grime and weeds.
-- Shopfront decoration rebuilds on renderShops, including month advances, tenant openings, shop closures and saved progress reload.
-- Occupied business appearance, normal health badges, simulation, property costs and localStorage unchanged.
+SAFARI CHECKS:
+1. Version header/footer read 9B.1 revised; current 9A.4 saved game loads intact.
+2. Request appears in Notifications (month 2 of new game) and shop details.
+3. Selecting each choice changes ONLY the preview; no spending until Confirm.
+4. Permit deducts 0 AP/£0; funded choice deducts correct money + 1 AP; decline free.
+5. Odds, uplift and duration are visible in the concise single preview.
+6. Action can be confirmed directly from shop details; remains in correct shop.
+7. The same offered request persists across Safari refresh; no duplicates.
+8. Outcome resolves after the next month; does not reroll on refresh.
+9. Delivered uplift affects ONLY the associated shop, lasts three trading months.
+10. Ignored request expires; closed owner's unresolved request is cancelled safely.
+11. No new request appears in the final playable month (currently Month 12).
+12. Advance, mandatory event, all tabs, reports, 9A.4 street scrolling/animations and Month 12 results remain working.
+13. Restart works; owner request schedule starts afresh. Archive unaffected.
 
-SAFARI TESTS
-[ ] Stage 9A.2 appears in browser title/header/footer.
-[ ] Starting vacant units initially show Good / clean To Let.
-[ ] At Month 5 (after four vacant months), unchanged empty units show Fair and some wear.
-[ ] At Month 10 (after nine vacant months), unchanged empty units show Poor with boarding and weeds.
-[ ] Tapping every vacant shop still opens its detail panel; swiping north/south works.
-[ ] Tenant selection instantly replaces the vacant shopfront with an occupied business frontage.
-[ ] Existing occupied businesses retain their artwork even when struggling or critical.
-[ ] Refresh on a saved later month preserves Good/Fair/Poor visual classification.
-[ ] All four tabs, council controls, monthly reports, decisions and Month 12 result remain functional.
-[ ] Version Archive remains unaffected.
-
-Testing at later months: use your normal gameplay; do not manually edit localStorage. Vacancy age is counted by the existing model, not by this patch.
-
-Stage 9A.3 is planned: show existing council cleaning, lighting and transport decisions visually on the street.
-Master Reference: add 9A.2 only once user acceptance is confirmed; preserve 9A.1 acceptance history.
+No previous 9B.1 candidate upload required; do NOT upload old candidate.

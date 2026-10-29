@@ -1,0 +1,26 @@
+/* Stage 9B.1 — optional owner requests. No fixed overlays or street hit targets. */
+.owner-request-section{margin:14px 0;padding:11px 0;border-top:1px solid #dce6da}
+.owner-request-section h4{margin:0 0 9px;font-size:15px;color:#294c3b}
+.owner-request-card{border:1px solid #d5e2d3;background:#f8faf5;border-radius:12px;padding:12px;margin:9px 0}
+.owner-request-card strong{display:block;font-size:13px;line-height:1.45}
+.owner-request-card p{font-size:12px;line-height:1.5;margin:7px 0!important;color:#43584a}
+.owner-request-card .owner-request-meta{font-size:11px;color:#647c69}
+.owner-request-actions{display:grid;gap:7px;margin-top:10px}
+.owner-request-actions button{font:inherit;font-size:12px;font-weight:750;padding:11px;border-radius:9px;background:white;border:1px solid #a9c8b5;color:#285d46;min-height:44px;cursor:pointer}
+.owner-request-actions button:nth-child(2){background:#2e7254;color:white}
+.owner-request-actions button:disabled{opacity:.48;cursor:not-allowed}
+.owner-request-actions button:focus-visible{outline:3px solid #1f6a8d;outline-offset:2px}
+
+/* 9B.1 revised: compact, one-preview-at-a-time option selector */
+.owner-request-card{padding:10px;margin:7px 0}
+.owner-request-card p{margin:4px 0!important;line-height:1.35}
+.owner-request-card .owner-request-description{font-size:12px}
+.owner-request-options{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin-top:8px}
+.owner-request-option{min-height:40px;padding:5px 3px;border:1px solid #bbcebe;border-radius:8px;background:#fff;color:#2b5a47;font-weight:700;font-size:11px;cursor:pointer}
+.owner-request-option[aria-pressed="true"]{background:#d9eadd;border-color:#347458;box-shadow:inset 0 0 0 1px #347458}
+.owner-request-preview{font-size:11px!important;font-weight:650;color:#2a5b48!important;background:#edf4ed;padding:7px 8px;border-radius:7px;margin:7px 0!important}
+.owner-request-error{font-size:11px!important;color:#9b463e!important}
+.owner-request-error:empty{display:none}
+.owner-request-confirm{width:100%;min-height:42px;margin-top:5px;padding:9px;border-radius:8px;border:0;background:#2d7254;color:#fff;font-weight:750;cursor:pointer}
+.owner-request-confirm:disabled{opacity:.5}
+.owner-request-option:focus-visible,.owner-request-confirm:focus-visible{outline:3px solid #216a8b;outline-offset:2px}
