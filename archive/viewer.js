@@ -39,15 +39,30 @@
       const base='<base href="'+location.href.replace(/&/g,'&amp;').replace(/"/g,'&quot;')+'">';
       html=html.replace(/<head([^>]*)>/i,'<head$1>'+base+storageShim);
       if(ticket!==serial)return;
-      frame.hidden=false;$('empty').hidden=true;
+      frame.hidden=false;$('empty').hidden=true;fullButton.disabled=false;
       // Resetting srcdoc creates fresh, isolated in-memory storage each time.
       frame.srcdoc=html;
       $('restart').disabled=false;
       status.textContent=v.name+' loaded from local snapshot files. Progress will reset when reopened.';
-    }catch(error){if(ticket!==serial)return;frame.removeAttribute('srcdoc');frame.hidden=true;$('empty').hidden=false;$('restart').disabled=true;status.textContent='Could not load '+v.name+': '+error.message+' Copy its original files into archive/snapshots/'+v.id+'/';}
+    }catch(error){if(ticket!==serial)return;frame.removeAttribute('srcdoc');frame.hidden=true;$('empty').hidden=false;$('restart').disabled=true;fullButton.disabled=true;exitFullscreen();status.textContent='Could not load '+v.name+': '+error.message+' Copy its original files into archive/snapshots/'+v.id+'/';}
     finally{if(ticket===serial)$('open').disabled=false;}
   }
-  select.addEventListener('change',()=>{serial++;frame.removeAttribute('srcdoc');frame.hidden=true;$('empty').hidden=false;$('restart').disabled=true;status.textContent='Choose Open snapshot to view this milestone.';updateInfo();});
+  const fullButton=$('fullscreen');
+  function exitFullscreen(){
+    document.body.classList.remove('archive-fullscreen');
+    fullButton.textContent='⛶ Full screen';
+    fullButton.setAttribute('aria-pressed','false');
+  }
+  fullButton.addEventListener('click',()=>{
+    if(frame.hidden)return;
+    const active=document.body.classList.toggle('archive-fullscreen');
+    fullButton.textContent=active?'✕ Exit full screen':'⛶ Full screen';
+    fullButton.setAttribute('aria-pressed',String(active));
+  });
+  document.addEventListener('keydown',event=>{
+    if(event.key==='Escape' && document.body.classList.contains('archive-fullscreen')) exitFullscreen();
+  });
+  select.addEventListener('change',()=>{exitFullscreen();serial++;frame.removeAttribute('srcdoc');frame.hidden=true;$('empty').hidden=false;$('restart').disabled=true;fullButton.disabled=true;status.textContent='Choose Open snapshot to view this milestone.';updateInfo();});
   $('open').addEventListener('click',openSnapshot);
   $('restart').addEventListener('click',openSnapshot);
   updateInfo();
