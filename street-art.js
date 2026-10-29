@@ -114,11 +114,56 @@
     }
     road.append(layer);
   }
+
+  // Stage 9A.4: a handful of illustrative street figures, NOT simulated citizens.
+  // The existing footfall metric determines broad visual activity, never vice versa.
+  function streetActivityBand(){
+    if(typeof game==='undefined'||typeof townMetrics!=='function')return 'normal';
+    const visits=Number(townMetrics(game).footfall);
+    if(!Number.isFinite(visits))return 'normal';
+    return visits<6500?'quiet':visits>=10000?'busy':'normal';
+  }
+  function renderStreetLife(){
+    const road=document.querySelector('.street-viewport .street');
+    if(!road)return;
+    const band=streetActivityBand();
+    let layer=road.querySelector('.hs9-street-life');
+    // A routine UI rerender should not restart walking animations.
+    if(layer && road.dataset.hs9Activity===band)return;
+    if(layer)layer.remove();
+    road.dataset.hs9Activity=band;
+    layer=node('div','hs9-street-life');
+    layer.setAttribute('aria-hidden','true');
+    const people=band==='quiet'?1:band==='busy'?5:3;
+    const locations=[13,30,47,64,82];
+    const coats=['sage','ochre','blue','rose','navy'];
+    for(let i=0;i<people;i++){
+      const person=node('span','hs9-person hs9-coat-'+coats[i]+(i%2?' hs9-walk-left':' hs9-walk-right'));
+      person.style.left=locations[i]+'%';
+      person.style.animationDelay=-(i*1.7)+'s';
+      person.append(node('span','hs9-person-head'),node('span','hs9-person-body'),node('span','hs9-person-legs'));
+      layer.append(person);
+    }
+    // A vehicle is an occasional ambience cue, not a traffic model.
+    // On quiet streets it is omitted; on busier ones it pauses between passes.
+    if(band!=='quiet'){
+      const vehicle=node('span','hs9-vehicle'+(band==='busy'?' hs9-vehicle-van':''));
+      vehicle.append(node('span','hs9-vehicle-window'),node('span','hs9-vehicle-wheels'));
+      layer.append(vehicle);
+    }
+    road.append(layer);
+  }
+  // Pause decorative movement while Safari is in the background.
+  function syncVisibility(){document.documentElement.classList.toggle('hs9-page-hidden',document.hidden);}
+  document.addEventListener('visibilitychange',syncVisibility);
+  syncVisibility();
+
   if(typeof renderAll==='function'){
     const previousRenderAll=renderAll;
     renderAll=function(){
       const result=previousRenderAll.apply(this,arguments);
       renderStreetscape();
+      renderStreetLife();
       return result;
     };
   }
@@ -128,4 +173,5 @@
   }
   decorate();
   renderStreetscape();
+  renderStreetLife();
 })();
