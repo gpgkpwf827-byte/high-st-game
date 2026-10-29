@@ -43,10 +43,6 @@
      b.addEventListener('click',()=>{selected=value;refresh();});opts.append(b);buttons[value]=b;
     }
     confirmButton.addEventListener('click',()=>{
-     const x=config[selected];
-     const prompt='Confirm '+x.display.toLowerCase()+' for '+r.businessName+'? '+
-       (selected==='support'?'The council will spend '+currency(t.cost)+' and 1 Action Point.':'No council funds or Action Points will be used.');
-     if(!confirm(prompt))return;
      try{game=answer(game,r.id,selected);persist();renderAll();
        if(source==='details'&&typeof inspectPremise==='function')inspectPremise(r.premiseId,false);
        else if(source==='popup')closePanel(); // Resume the existing monthly queue.

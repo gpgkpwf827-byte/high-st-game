@@ -48,37 +48,42 @@ const make=(tag,cls,text)=>{const n=doc.createElement(tag);if(cls)n.className=cl
 function showGrantOptions(id){
  const premise=currentPremise(game,id),details=doc.getElementById('details');if(!details)return;
  let panel=doc.getElementById('hs10-improvement-panel');
- if(!panel){panel=make('section','hs10-improvement-panel');panel.id='hs10-improvement-panel';const tenants=doc.getElementById('tenant-section');tenants?.before(panel);}
+ if(!panel){panel=make('section','hs10-improvement-panel');panel.id='hs10-improvement-panel';doc.getElementById('tenant-section')?.before(panel);}
  if(premise?.occupied){panel.hidden=true;return;}
  panel.hidden=false;panel.replaceChildren();
- panel.append(make('h4',null,'Vacant Premises Improvement Grants'));
- panel.append(make('p','hs10-muted','Council-funded property improvements, matched equally by the landlord. Each unit can receive one grant per game.'));
- const before=conditionScore(game,id);
- const used=previousGrants(game).find(x=>x.premiseId===id);
+ const heading=make('h4',null,'Vacant Premises Improvement Grant');panel.append(heading);
+ const before=conditionScore(game,id),used=previousGrants(game).find(x=>x.premiseId===id);
  const actual=vacancyAppeal(game);
- const box=make('div','hs10-condition-brief');
- box.append(make('strong',null,'Property condition: '+before+'/100 · '+conditionBand(before)));
- box.append(make('small',null,'Combined vacant-premises effect on town attractiveness: '+(actual>=0?'+':'')+actual.toFixed(1)+' points (capped ±15)'));
- panel.append(box);
- if(used){panel.append(make('p','hs10-used','Improvement completed in Month '+used.month+': '+TIERS[used.tier].title+' ('+used.from+' → '+used.to+'). No further vacant-premises grant is available for this unit.'));return;}
- for(const [tier,option] of Object.entries(TIERS)){
-  const section=make('div','hs10-grant-option');section.append(make('strong',null,option.title));
-  section.append(make('p',null,option.description));
-  const after=Math.min(100,before+option.improvement);
+ panel.append(make('p','hs10-muted','Condition '+before+'/100 · '+conditionBand(before)+' · Town appeal '+(actual>=0?'+':'')+actual.toFixed(1)+' (max ±15)'));
+ if(used){panel.append(make('p','hs10-used','Grant completed in Month '+used.month+' · '+TIERS[used.tier].title+' · Condition '+used.from+' → '+used.to+'. One grant per unit.'));return;}
+ const choices=make('div','hs10-grant-choices');const preview=make('div','hs10-grant-preview');const status=make('p','hs10-unavailable');
+ const confirmBtn=make('button','hs10-grant-confirm');confirmBtn.type='button';
+ let selected='shopfront',confirming=false;
+ function refresh(){
+  const opt=TIERS[selected],after=Math.min(100,before+opt.improvement);
   const prospect={...game,propertyConditions:{...game.propertyConditions,[id]:{...game.propertyConditions[id],condition:after}}};
-  const projected=vacancyAppeal(prospect);
-  section.append(make('small',null,'Council '+fmt(option.cost)+' + landlord '+fmt(option.cost)+' · 1 Action Point'));
-  section.append(make('small',null,'Condition '+before+' → '+after+' · town attractiveness '+(actual>=0?'+':'')+actual.toFixed(1)+' → '+(projected>=0?'+':'')+projected.toFixed(1)));
-  const button=make('button',null,'Fund '+option.title+' · '+fmt(option.cost));button.type='button';
-  const error=canImprove(game,id,tier);button.disabled=!!error;
-  button.addEventListener('click',()=>{
-   if(!window.confirm('Approve '+option.title+' for '+fmt(option.cost)+' from the council budget and 1 Action Point? The landlord contributes '+fmt(option.cost)+'.'))return;
-   try{game=provideImprovement(game,id,tier);persist();renderAll();inspectPremise(id,false);openPanel('details');}
-   catch(e){alert(e.message);}
-  });
-  section.append(button);if(error)section.append(make('small','hs10-unavailable',error));panel.append(section);
+  const projected=vacancyAppeal(prospect),reason=canImprove(game,id,selected);
+  [...choices.children].forEach(x=>{const yes=x.dataset.tier===selected;x.classList.toggle('hs10-selected',yes);x.setAttribute('aria-pressed',String(yes));});
+  preview.replaceChildren();
+  preview.append(make('strong',null,opt.title),make('p',null,opt.description));
+  preview.append(make('small',null,'Council '+fmt(opt.cost)+' · Landlord '+fmt(opt.cost)+' · 1 Action Point'));
+  preview.append(make('small',null,'Condition '+before+' → '+after+' (+'+(after-before)+') · Town appeal '+(actual>=0?'+':'')+actual.toFixed(1)+' → '+(projected>=0?'+':'')+projected.toFixed(1)));
+  status.textContent=reason||'';confirmBtn.disabled=!!reason;
+  confirmBtn.textContent=confirming?'Confirm '+fmt(opt.cost)+' grant':'Review '+fmt(opt.cost)+' grant';
  }
+ for(const [tier,opt] of Object.entries(TIERS)){
+  const button=make('button','hs10-choice');button.type='button';button.dataset.tier=tier;
+  button.append(make('strong',null,tier==='shopfront'?'Shopfront':'Comprehensive'),make('small',null,fmt(opt.cost)));
+  button.addEventListener('click',()=>{selected=tier;confirming=false;refresh();});choices.append(button);
+ }
+ confirmBtn.addEventListener('click',()=>{
+  if(!confirming){confirming=true;refresh();const note=make('p','hs10-confirm-note','Confirm spending '+fmt(TIERS[selected].cost)+' and 1 Action Point? The landlord matches the council contribution.');preview.append(note);return;}
+  try{game=provideImprovement(game,id,selected);persist();renderAll();inspectPremise(id,false);openPanel('details');}
+  catch(e){status.textContent=e.message;confirming=false;refresh();}
+ });
+ panel.append(choices,preview,status,confirmBtn);refresh();
 }
+
 const originalInspect=inspectPremise;
 inspectPremise=function(id){
  const result=originalInspect.apply(this,arguments);
