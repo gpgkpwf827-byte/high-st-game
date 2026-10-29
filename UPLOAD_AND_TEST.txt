@@ -1,42 +1,23 @@
-HIGH STREET — Stage 8B.2 CANDIDATE | 29 October 2026
+HIGH STREET — STAGE 8B.2.1 HOTFIX
 
-BASELINE
-Build on your confirmed working Stage 8B.1 deployment. Do NOT remove or replace existing JavaScript economic modules. Do not reset progress.
+Upload ONLY these two files to the ROOT of GitHub repository gpgkpwf827-byte/high-st-game:
+1. index.html — REPLACE
+2. stage8b2.js — REPLACE
 
-UPLOAD ONLY THESE THREE FILES TO THE REPOSITORY ROOT
-1. index.html      REPLACE existing index.html
-2. stage8b2.css    ADD new file
-3. stage8b2.js     ADD new file
-
-Leave stage8b1.css, stage8b1.js, app.js and all simulation files exactly as they are.
-Do not upload UPLOAD_AND_TEST.txt unless you want to keep release notes in GitHub.
-Wait for GitHub Pages deployment, then reload the page in Safari. Page title/header/footer should show Stage 8B.2. If old files appear, close the tab and reopen with ?v=8b2 at the end of the URL.
+Do not delete or replace any other files. Keep stage8b1.js, CSS files, all economic modules, and saved game data untouched.
 
 WHAT CHANGED
-- Expandable Recovery Objectives tracker directly above the street. Collapsed by default; 3 progress bars; current figures, not final victory guarantees.
-- Removed the redundant Town Indicators link at the bottom of Town (other town economy indicators remain accessible via Reports).
-- Shop panels start at a compact 76% screen-height and offer Expand/Compact toggle. Existing financial overview, expandable detailed finances, grants, vacancies and tenant controls remain unchanged.
-- Index stylesheet/script references have a new version marker; no save key or economic rules changed.
+- Town > Recovery objectives now displays latest completed month's RECORDED footfall, same value as Reports > Performance > Footfall, rather than the estimate for the upcoming month.
+- Before Month 1 is completed, recorded footfall says 'After Month 1'.
+- Recovery note explicitly distinguishes current occupancy from recorded footfall/stability.
+- Header, footer and browser title read Stage 8B.2.1; index.html cache-busts updated JS.
+- No economic formula, save schema or win conditions changed.
 
-IPHONE SAFARI TESTS
-[ ] On the Town tab, the Recovery Objectives card appears above the street and expands/collapses.
-[ ] Occupancy / 10 needed, footfall / 10,000 and stable proportion / 70% are correct for your current game. Before the first completed month, stable shows 'After Month 1'.
-[ ] The old Town Indicators button/link is gone from the bottom of Town; Reports still has Performance, Local economy, Current issues, Monthly report, Recovery objectives.
-[ ] Tap an occupied shop: shop overview/profit/cash appear, Expand grows the sheet, Compact shrinks it; detailed finances/debug and grant controls work.
-[ ] Tap a vacant unit via the Town street AND Businesses tab: applicants, costs and action buttons remain accessible.
-[ ] Close the shop panel and navigate all four bottom tabs; advance button still works on Town.
-[ ] Advance a month: the recovery card refreshes its values; no duplicate cards appear.
-[ ] Mandatory events, notifications, opportunity offers and Council controls continue to work.
-[ ] Reload Safari: same month, money, business changes, and history; grants and opportunities remain saved.
-[ ] End Month 12: final results work and remain reopenable; Restart works after confirmation.
+TEST ON IPHONE SAFARI
+1. Load the game, confirm header/footer read 8B.2.1.
+2. Open Town > Recovery objectives and Reports > Performance (Footfall). For completed months, their figures should be identical.
+3. Advance a month, re-check that they still agree.
+4. Restart (ONLY if comfortable losing current progress), ensure footfall says 'After Month 1' before advancing.
+5. Verify all four tabs, shop panels, grants/tenants, and saved progress still work after refresh.
 
-LIMITATIONS
-Release is a candidate until your Safari tests. No full phone UI verification is possible here. No finance formulas, shop outcomes, event rules or save format were intentionally changed. Static checks validate the new scripts, not every interaction in the full game.
-
-ROLLBACK
-Restore the prior 8B.1 index.html from GitHub commit history. New stage8b2.js/css files may remain unused; removing them is optional. Existing saved games should not require migration.
-
-MASTER REFERENCE DELTA (once tested)
-- Mark Stage 8B.1 accepted and 8B.2 user-tested.
-- Record recovery tracker in Town, hidden duplicate Town Indicators link and expand/compact shop sheet.
-- Confirm unchanged underlying game logic, finance disclosures, council choices and browser save key.
+VERSION STATUS: candidate until user confirms Safari checks. Previously deployed GitHub commit can be reverted.

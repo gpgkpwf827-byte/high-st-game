@@ -7,21 +7,22 @@
  if(!heading)return;
  // Compact Town recovery tracker. Its values are derived from the existing simulation.
  const tracker=document.createElement('details');tracker.id='b2-recovery';tracker.className='b2-recovery';
- tracker.innerHTML='<summary><span><strong>🎯 Recovery objectives</strong><small id="b2-recovery-sub">Current progress towards Month 12</small></span><span class="b2-chevron" aria-hidden="true">⌄</span></summary><div id="b2-recovery-rows" class="b2-recovery-rows"></div><p class="b2-recovery-note">These are current readings. All three must be met at the end of Month 12.</p>';
+ tracker.innerHTML='<summary><span><strong>🎯 Recovery objectives</strong><small id="b2-recovery-sub">Current progress towards Month 12</small></span><span class="b2-chevron" aria-hidden="true">⌄</span></summary><div id="b2-recovery-rows" class="b2-recovery-rows"></div><p class="b2-recovery-note">Occupancy is current; footfall and business stability are from the latest completed month. All three must be met at the end of Month 12.</p>';
  heading.before(tracker);
  const rows=document.getElementById('b2-recovery-rows');
  function updateTracker(){
    const occupied=occupiedPremises(game).length;
-   const metrics=townMetrics(game);
    const last=(game.history||[]).at(-1);
+   // Recovery footfall must match the recorded monthly result used by Performance and the final challenge.
+   const recordedFootfall=last&&Number.isFinite(last.footfall)?last.footfall:null;
    const stable=last&&Number.isFinite(last.stable)?last.stable:null;
    const stablePct=stable===null?null:(occupied?100*stable/occupied:0);
    const values=[
      {label:'🏪 Occupancy',value:occupied,target:10,display:occupied+' / 10 needed',achieved:occupied>=10},
-     {label:'👣 Monthly footfall',value:metrics.footfall,target:10000,display:metrics.footfall.toLocaleString('en-GB')+' / 10,000',achieved:metrics.footfall>=10000},
+     {label:'👣 Recorded footfall',value:recordedFootfall,target:10000,display:recordedFootfall===null?'After Month 1':recordedFootfall.toLocaleString('en-GB')+' / 10,000',achieved:recordedFootfall!==null&&recordedFootfall>=10000},
      {label:'💚 Stable businesses',value:stablePct,target:70,display:stablePct===null?'After Month 1':stablePct.toFixed(0)+'% / 70%',achieved:stablePct!==null&&stablePct>=70}
    ];
-   document.getElementById('b2-recovery-sub').textContent=values.filter(x=>x.achieved).length+' of 3 currently met · Month '+Math.min(game.month,12)+'/12';
+   document.getElementById('b2-recovery-sub').textContent=values.filter(x=>x.achieved).length+' of 3 currently met · '+(last?'Last completed: Month '+last.month:'Before Month 1');
    rows.replaceChildren();
    for(const v of values){
      const row=document.createElement('div');row.className='b2-goal';
