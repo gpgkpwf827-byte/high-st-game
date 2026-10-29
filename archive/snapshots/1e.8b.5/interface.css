@@ -1,0 +1,111 @@
+/* High Street Stage 8B.5 — consolidated 8B.1–8B.4.1 interface CSS.
+   Sections retain their original order and behaviour. Simulation and saves unchanged. */
+
+
+/* ---- stage8b1.css ---- */
+/* Stage 8B.1 — layout/navigation only. Existing financial and simulation logic unchanged. */
+:root { --b1-nav-height: 66px; }
+body { padding-bottom: calc(var(--b1-nav-height) + env(safe-area-inset-bottom, 0px)); }
+.shell { padding-bottom: calc(100px + env(safe-area-inset-bottom, 0px)); }
+/* Keep the familiar street, but make it the main focal point. */
+.capacity-bar { padding-block: 6px !important; }
+.overview-stats { margin-bottom: 6px !important; }
+.town-metrics, .recovery-strip { display:none !important; }
+.quick-actions.grouped-nav { display:none !important; }
+.section-head { margin-top: 8px !important; }
+.street-viewport { margin-top:6px; min-height: 285px; }
+.hint { font-size: 12px; opacity:.75; }
+.b1-secondary { display:flex; flex-direction:column; gap:8px; margin:12px 0 2px; }
+.b1-secondary > button { background:#eaf1ec; color:#184736; border:1px solid #cbded2; border-radius:12px; padding:11px 12px; font:inherit; font-weight:700; width:100%; text-align:left; }
+.b1-secondary small { display:block; color:#456657; font-weight:400; font-size:12px; }
+.b1-bottom-nav { position:fixed; bottom:0; left:0; right:0; display:grid; grid-template-columns:repeat(4,1fr); background:#fff; border-top:1px solid #d4ded9; padding:6px 6px calc(6px + env(safe-area-inset-bottom,0px)); z-index:90; box-shadow:0 -2px 14px #122e241a; }
+.b1-bottom-nav button { background:transparent; border:0; border-radius:10px; color:#45554e; min-height:47px; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:2px; font:inherit; font-size:11px; font-weight:650; }
+.b1-bottom-nav button .b1-icon { font-size:20px; line-height:1.2; }
+.b1-bottom-nav button[aria-current="page"] { background:#e6f2ea; color:#155d39; }
+.b1-bottom-nav button:focus-visible, .b1-secondary button:focus-visible { outline:3px solid #2b7e57; outline-offset:2px; }
+.b1-view { display:none; margin:10px 0 4px; padding:0 4px; }
+.b1-view.b1-active { display:block; }
+.b1-view h2 { margin: 8px 0 12px; }
+.b1-view .b1-list { display:grid; gap:9px; }
+.b1-list-row { display:flex; align-items:center; gap:10px; width:100%; padding:13px 11px; border:1px solid #dbe2df; background:#fff; border-radius:13px; color:#183629; text-align:left; font:inherit; }
+.b1-list-row .b1-shop-icon { font-size:25px; width:32px; text-align:center; }
+.b1-list-row strong { display:block; font-size:14px; }
+.b1-list-row small { display:block; color:#5d6a62; font-size:12px; margin-top:2px; }
+.b1-filters { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:12px; }
+.b1-filters button { border-radius:18px; padding:8px 13px; border:1px solid #c9d7ce; background:#fff; color:#234e37; font:inherit; font-size:12px; }
+.b1-filters button[aria-pressed="true"] { background:#1b6542; color:white; }
+.b1-hero { padding:12px 14px; margin-bottom:12px; background:#eaf4ed; border-radius:13px; color:#1d4830; font-size:13px; }
+.b1-cards { display:grid; gap:9px; }
+.b1-cards button { border:1px solid #d6e0da; border-radius:12px; background:#fff; padding:15px 13px; text-align:left; font:inherit; color:#204834; font-weight:700; }
+.b1-cards small { display:block; color:#61746a; font-size:12px; margin-top:4px; font-weight:400; }
+body.b1-not-town .street-viewport, body.b1-not-town .section-head, body.b1-not-town .hint, body.b1-not-town .overview-stats, body.b1-not-town .capacity-bar, body.b1-not-town .b1-secondary, body.b1-not-town .pending-banner { display:none !important; }
+body.b1-not-town .floating-advance { display:none !important; }
+body.modal-active .b1-bottom-nav { visibility:hidden; pointer-events:none; }
+/* The existing modal stays intact in this slice. */
+body.modal-active .floating-advance { visibility:hidden; pointer-events:none; }
+@media (max-width:380px) { .b1-bottom-nav button { font-size:10px; } .b1-list-row { padding:11px 9px; } }
+@media (orientation:landscape) and (max-height:530px) { .b1-bottom-nav { padding-top:3px; } .b1-bottom-nav button { min-height:38px; } .b1-bottom-nav button .b1-icon { font-size:17px; } }
+/* Keep the month control above the fixed tab bar. */
+.floating-advance { bottom:calc(76px + env(safe-area-inset-bottom,0px)) !important; z-index:80; }
+body.b1-not-town #save-status { display:none !important; }
+
+
+/* ---- stage8b2.css ---- */
+/* Stage 8B.2 visual-only overrides. Keep the existing 8B.1 navigation and town. */
+.b1-secondary { display:none !important; } /* redundant Town indicators link */
+/* The original large metric and recovery strips remain available to old JS, but invisible on Town. */
+.town-metrics,.recovery-strip {display:none!important}
+.b2-recovery {background:#fff;border:1px solid #d7e2d9;border-radius:14px;margin:10px 2px 12px;box-shadow:0 2px 8px #193f2910;color:#1b4130}
+.b2-recovery>summary {display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer;padding:12px 14px;list-style:none}
+.b2-recovery>summary::-webkit-details-marker {display:none}
+.b2-recovery>summary span:first-child {display:grid;gap:4px}
+.b2-recovery>summary strong{font-size:14px}
+.b2-recovery>summary small{font-size:11px;color:#637769}
+.b2-chevron{font-size:21px;font-weight:600;transition:transform .18s}
+.b2-recovery[open] .b2-chevron{transform:rotate(180deg)}
+.b2-recovery-rows{display:grid;gap:15px;padding:0 14px 10px}
+.b2-goal-top{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;margin-bottom:6px}
+.b2-goal-top strong{font-size:12px;text-align:right}
+.b2-progress{height:7px;border-radius:8px;overflow:hidden;background:#e6eee8}
+.b2-progress span{display:block;height:100%;background:#8dba9c;border-radius:8px;transition:width .15s}
+.b2-progress span.b2-met{background:#298657}
+.b2-recovery-note{color:#66776c;font-size:11px;padding:0 14px 14px;margin:0}
+body.b1-not-town #b2-recovery{display:none!important}
+/* Preserve the existing detailed finance disclosure and shop actions. */
+.modal-sheet.b2-shop-sheet{height: min(76dvh, 820px);max-height:94dvh;transition:height .2s ease}
+.modal-sheet.b2-shop-sheet.b2-expanded{height:94dvh}
+.b2-expand{border:1px solid #cbd9ce;background:#e9f1e9;color:#23583e;border-radius:9px;font:inherit;font-size:12px;font-weight:700;padding:8px 10px;margin-left:auto;margin-right:8px;white-space:nowrap}
+.b2-shop-sheet #shop-overview{margin-bottom:10px}
+.b2-shop-sheet #financials,.b2-shop-sheet #tenant-section,.b2-shop-sheet #grant-section{margin-top:14px}
+.b2-shop-sheet .modal-scroll{flex:1;min-height:0}
+@media (max-width:360px){.b2-goal-top{font-size:11px}.b2-goal-top strong{font-size:11px}}
+@media (orientation:landscape) and (max-height:530px){.modal-sheet.b2-shop-sheet{height:85dvh}.modal-sheet.b2-shop-sheet.b2-expanded{height:96dvh}}
+
+
+/* ---- stage8b3.css ---- */
+/* Stage 8B.3 Council HQ mobile presentation */
+.b3-hq-top h2{margin-bottom:4px}.b3-muted{font-size:12px;color:#65736b;line-height:1.5}.b3-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin:14px 0 18px}.b3-stat{background:#eaf3ed;padding:14px 11px;border-radius:13px;display:grid;gap:5px;color:#1a4c35}.b3-stat small{font-size:12px}.b3-stat strong{font-size:20px;overflow-wrap:anywhere}.b3-choices-title{font-size:16px;margin:8px 0 10px}.b3-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.b3-tile{display:flex;flex-direction:column;align-items:flex-start;gap:7px;min-height:132px}.b3-tile-icon{font-size:26px}.b3-tile strong{font-size:14px}.b3-tile small{font-size:11px;color:#64766b;line-height:1.4}.b3-card-button{background:white;border:1px solid #d5e0da;border-radius:13px;text-align:left;color:#1b4730;font:inherit;padding:13px;width:100%;cursor:pointer}.b3-extras{display:grid;gap:9px;margin:16px 0}.b3-extras button{font-size:13px;font-weight:600}.b3-category-header{display:grid;gap:8px;margin-bottom:12px}.b3-category-header button{width:max-content;background:#e8f2ec;border:1px solid #c8ded0;border-radius:12px;color:#205b3d;padding:9px 12px;font:inherit;font-size:13px}.b3-category-header h3{margin:0}.b3-commitments h4{margin:16px 0 7px}.b3-figures{display:grid;gap:7px}.b3-figure{display:flex;justify-content:space-between;gap:10px;border:1px solid #dae5dd;background:#fff;padding:12px;border-radius:10px;font-size:13px}.b3-programme{padding:10px;background:#eef4ef;border-radius:10px;font-size:13px}.b3-card-button:focus-visible,.b3-category-header button:focus-visible{outline:3px solid #348b66;outline-offset:2px}
+
+
+/* ---- stage8b4.css ---- */
+/* Stage 8B.4 reporting UI. Presentation only. */
+.b4-muted{color:#647267;font-size:13px;line-height:1.5}
+.b4-home-intro{display:flex;flex-direction:column;gap:4px;margin:14px 0 10px}
+.b4-home-intro small{color:#647267}
+.b4-home-kpis,.b4-kpis{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin:10px 0 17px}
+.b4-kpi{display:flex;flex-direction:column;gap:5px;padding:12px 11px;background:#edf4ef;border:1px solid #dce8df;border-radius:13px;min-width:0}
+.b4-kpi small{font-size:11px;color:#577363}.b4-kpi strong{font-size:19px;color:#183b2b;overflow-wrap:anywhere}
+.b4-delta{font-size:11px;color:#4a6356;line-height:1.3}
+.b4-links{display:grid;gap:8px;margin-top:15px}.b4-link{position:relative;width:100%;text-align:left;border:1px solid #d7e2da;border-radius:12px;background:#fff;color:#204834;padding:14px 30px 14px 13px;font:inherit;display:flex;flex-direction:column;gap:3px}
+.b4-link strong{font-size:14px}.b4-link small{font-size:12px;color:#62776a}.b4-arrow{position:absolute;right:13px;top:calc(50% - 13px);font-size:24px}
+.b4-link:focus-visible,.b4-full-accounts summary:focus-visible{outline:3px solid #29815a;outline-offset:2px}
+.b4-empty{background:#eef3ee;padding:13px;border-radius:12px;font-size:13px}
+.b4-briefing-head{padding-bottom:8px}.b4-briefing-head h3{margin:5px 0!important}.b4-kicker{font-size:10px;letter-spacing:.08em;color:#52735e;font-weight:700}
+.b4-summary{background:#e7f1ea;border-left:4px solid #2d835c;padding:13px;border-radius:10px;margin:10px 0 15px}.b4-summary strong{color:#16472e}.b4-summary p{font-size:13px;margin:6px 0 0;line-height:1.45}
+.b4-section-title{margin:18px 0 8px}.b4-section-title h4{margin:0 0 3px;color:#1b4531}.b4-section-title small{font-size:12px;color:#657569}
+.b4-line-items{border:1px solid #dde7de;border-radius:12px;background:#fff;overflow:hidden}
+.b4-line{display:flex;justify-content:space-between;gap:12px;padding:10px 12px;font-size:13px;border-bottom:1px solid #e8eee9}.b4-line:last-child{border-bottom:0}.b4-line strong{text-align:right;color:#214631}
+.b4-note-list{display:grid;gap:8px}.b4-note{padding:11px 12px;border-radius:11px;background:#f0f4ef}.b4-note strong{font-size:13px}.b4-note p{font-size:12px;margin:5px 0 0;line-height:1.5}
+.b4-footnote{margin:16px 0}.b4-full-accounts{border:1px solid #d8e3db;background:#fff;border-radius:12px;margin:16px 0;overflow:hidden}.b4-full-accounts>summary{padding:15px;font-weight:700;color:#195436;cursor:pointer}.b4-full-accounts[open]>summary{border-bottom:1px solid #e1e9e2}.b4-full-accounts> :not(summary){margin-left:12px;margin-right:12px}.b4-full-accounts>.details{margin-top:12px}
+@media(max-width:370px){.b4-kpi strong{font-size:16px}.b4-line{font-size:12px}}
+
