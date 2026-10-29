@@ -32,13 +32,6 @@ const briefing=el('div','b4-briefing');report.append(briefing,detail);
 function buildBriefing(){
  briefing.replaceChildren();const h=record(),prev=prior();if(!h){briefing.append(el('p','b4-empty','The first monthly briefing becomes available after Month 1.'));return;}
  const head=el('div','b4-briefing-head');head.append(el('small','b4-kicker','HIGH STREET COUNCIL · COMPLETED RESULTS'),el('h3','','Month '+h.month+' briefing'),el('p','b4-muted','What happened during the last completed trading month.'));briefing.append(head);
- const footDelta=prev&&Number.isFinite(prev.footfall)?h.footfall-prev.footfall:null;
- const summary=el('div','b4-summary');let statement,explanation;
- if(!prev){statement='Your first month is complete';explanation='You now have recorded trading results to assess your regeneration decisions.';}
- else if(footDelta>0&&h.profit>=prev.profit){statement='Footfall and business profit improved';explanation='Both measures increased compared with the previous completed month.';}
- else if(footDelta<0&&h.profit<prev.profit){statement='The town faced a tougher month';explanation='Footfall and combined business profit both decreased compared with last month.';}
- else{statement='A mixed month for the high street';explanation='Different measures moved in different directions. Examine the results before making your next decisions.';}
- summary.append(el('strong','',statement),el('p','',explanation));briefing.append(summary);
  const stableShare=h.occupancy?100*h.stable/h.occupancy:0,prevShare=prev&&prev.occupancy?100*prev.stable/prev.occupancy:null;
  briefing.append(heading('Town performance','Actual figures for Month '+h.month));
  const kpis=el('div','b4-kpis');kpis.append(tile('👣 Footfall',num(h.footfall),prev?delta(h.footfall,prev.footfall):'First recorded month'),tile('🏪 Occupied premises',h.occupancy+' / 12',prev?delta(h.occupancy,prev.occupancy):'First recorded month'),tile('💚 Stable businesses',stableShare.toFixed(0)+'%',prev?delta(stableShare,prevShare,'percent'):'First recorded month'),tile('💷 Business profit',currency(h.profit),prev?delta(h.profit,prev.profit,'money'):'First recorded month'));briefing.append(kpis);
@@ -60,5 +53,16 @@ const oldRender=renderAll;renderAll=function(){const result=oldRender.apply(this
 const reportsTab=nav.querySelector('[data-tab="reports"]');if(reportsTab)reportsTab.addEventListener('click',reportHome);
 // Existing Advance event handler already opens report automatically unless a required
 // event, strategic opportunity or final result takes priority. Do not interrupt those flows.
+// Reset the shared modal scroll whenever a different shop detail panel is opened.
+// Keep the existing dismiss handlers and 8B.2 expand/compact behaviour intact.
+const beforeShopOpen=openPanel;
+openPanel=function(name){
+ const result=beforeShopOpen.apply(this,arguments);
+ if(name==='details'){
+  const scroll=document.querySelector('#modal .modal-scroll');
+  if(scroll)scroll.scrollTop=0;
+ }
+ return result;
+};
 reportHome();buildBriefing();
 })();

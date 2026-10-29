@@ -1,31 +1,22 @@
-HIGH STREET — STAGE 8B.4 CANDIDATE
-Baseline: user-tested Stage 8B.3.
+High Street — Stage 8B.4.1 polish patch
 
-UPLOAD ON IPHONE (GitHub repository root)
-1. REPLACE index.html.
-2. ADD stage8b4.css.
-3. ADD stage8b4.js.
-4. Leave app.js, simulation/data modules and previous stage files unchanged.
-5. Open https://gpgkpwf827-byte.github.io/high-st-game/ in Safari.
-6. Browser title, header and footer should say Stage 8B.4.
+Upload to the ROOT of your GitHub repository:
+1. Replace index.html
+2. Replace stage8b4.js
 
-TEST CHECKLIST
-[ ] Reports tab shows the latest completed month KPIs; fresh game shows no completed month yet.
-[ ] Advance Month: monthly briefing opens automatically in normal months.
-[ ] When a mandatory event, strategic opportunity, or Month 12 result takes priority, it still displays correctly. The briefing is also accessible through Reports.
-[ ] Briefing KPIs match recorded figures in Performance: footfall, occupied, stable, profit.
-[ ] Month-on-month changes are correct, including negative profits and decreases.
-[ ] Business health, actual council rates receipts, service costs and closing funds are correctly labelled.
-[ ] Economic developments and strategic opportunity outcomes display when present.
-[ ] Expand 'Detailed monthly accounts & explanations' to see the original full monthly report, including existing detailed financial figures.
-[ ] Historical charts, Local Economy, Current Issues, Recovery Objectives and notifications still work.
-[ ] Town, Council HQ, Businesses, shop grants, tenant applications and navigation still work.
-[ ] Saved game loads unchanged after refresh; restarting and Month 12 assessment behave normally.
+Keep all other files unchanged. Do NOT upload this instruction file.
 
-TECHNICAL NOTES
-Only presentation files changed. No engine rules, save keys, game schema, or financial formulas altered.
-The existing advance flow automatically shows the report when no mandatory event, strategic offer, or final result takes precedence; these existing priority conditions are deliberately preserved.
-No full interactive iPhone browser test has been performed by the assistant; user acceptance is required.
+Changes:
+- Shop details always start scrolled to the top when opened, including from Businesses and from the street.
+- Hide the redundant inner close button for shop details, preserving the top bar close button and original event handler.
+- Remove the green monthly briefing commentary box; all KPI and detailed finance sections are preserved.
+- Browser title, header and footer all show Stage 8B.4.1.
+- No simulation, save-key, grant, or event logic changed.
 
-NEXT: Stage 8B.5 interface consolidation, after user acceptance.
-MASTER REFERENCE: Record 8B.4 reporting dashboard, completed-month briefing, expandable details, unchanged event priority and compatibility. Mark as candidate until user-tested.
+Safari test:
+1. Open shop A, scroll down, close; open shop B. It starts at the top.
+2. Repeat from Businesses and Town; test occupied and vacant shops.
+3. Confirm there is one visible close button alongside Expand/Compact and it works.
+4. Open latest monthly report: the green explanatory box is gone but KPI, business health, council figures, developments and expandable full accounts remain.
+5. Advance a month and verify automatic briefing and mandatory events still behave as before.
+6. Confirm save/reload still works and header/footer say Stage 8B.4.1.
