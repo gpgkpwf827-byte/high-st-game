@@ -1,32 +1,31 @@
-HIGH STREET — STAGE 8B.3 CANDIDATE
-Baseline: user-confirmed Stage 8B.2.1.
+HIGH STREET — STAGE 8B.4 CANDIDATE
+Baseline: user-tested Stage 8B.3.
 
-UPLOAD ON IPHONE
-1. In GitHub repo gpgkpwf827-byte/high-st-game (main/root), upload:
-   - index.html           REPLACE existing
-   - stage8b3.css         ADD
-   - stage8b3.js          ADD
-2. Do NOT delete or replace app.js, stage8b1.js, stage8b2.js, other CSS, game engine modules, or data.
-3. Open https://gpgkpwf827-byte.github.io/high-st-game/ in Safari after GitHub Pages finishes deploying.
-4. The browser title, header badge and footer should read Stage 8B.3.
+UPLOAD ON IPHONE (GitHub repository root)
+1. REPLACE index.html.
+2. ADD stage8b4.css.
+3. ADD stage8b4.js.
+4. Leave app.js, simulation/data modules and previous stage files unchanged.
+5. Open https://gpgkpwf827-byte.github.io/high-st-game/ in Safari.
+6. Browser title, header and footer should say Stage 8B.4.
 
-TEST (prefer an existing saved game, then a fresh challenge when convenient)
-[ ] Council bottom tab shows Council HQ with fund and Action Points matching Town.
-[ ] Four cards each open the correct category, and Back returns to Council HQ.
-[ ] Services: all three original rates, cleaning and lighting sliders work; apply and confirm the displayed policy is retained.
-[ ] Investments: buses and parking retain original prices, 2 AP, and mutually exclusive choice.
-[ ] Programmes: marketing, employment and vouchers retain working buttons and original conditions, duration and availability rules.
-[ ] Commitments: receipts, services expenditure and projected net match underlying policies; shows transport, marketing and programmes.
-[ ] Funding an action updates the HQ fund and remaining Action Points when revisited.
-[ ] Insufficient funds/AP, completed challenge and required decisions still block the appropriate actions.
-[ ] Notification bell, strategic offers, Current Issues, shop grants and tenant applications work.
-[ ] Town scroll, Recovery Objectives, shop panels, Businesses and Reports still work; footfall tracker matches recorded Performance footfall.
-[ ] Advance Month, save on refresh, Restart, and Month 12 completion still work.
+TEST CHECKLIST
+[ ] Reports tab shows the latest completed month KPIs; fresh game shows no completed month yet.
+[ ] Advance Month: monthly briefing opens automatically in normal months.
+[ ] When a mandatory event, strategic opportunity, or Month 12 result takes priority, it still displays correctly. The briefing is also accessible through Reports.
+[ ] Briefing KPIs match recorded figures in Performance: footfall, occupied, stable, profit.
+[ ] Month-on-month changes are correct, including negative profits and decreases.
+[ ] Business health, actual council rates receipts, service costs and closing funds are correctly labelled.
+[ ] Economic developments and strategic opportunity outcomes display when present.
+[ ] Expand 'Detailed monthly accounts & explanations' to see the original full monthly report, including existing detailed financial figures.
+[ ] Historical charts, Local Economy, Current Issues, Recovery Objectives and notifications still work.
+[ ] Town, Council HQ, Businesses, shop grants, tenant applications and navigation still work.
+[ ] Saved game loads unchanged after refresh; restarting and Month 12 assessment behave normally.
 
-TECHNICAL
-Presentation-only layer. No financial formulas, localStorage key, or save format changed.
-The existing app.js renderCouncil function still owns all original action controls.
-Stage 8B.3 introduces a Council HQ and shows original controls in separate categories; Commitments is read-only.
-Existing stage8b1/8b2 layers are intentionally retained until the separate consolidation milestone.
-If anything breaks, revert index.html to the prior Stage 8B.2.1 commit; the new CSS/JS files can remain unused.
-This package is a candidate pending actual Safari testing.
+TECHNICAL NOTES
+Only presentation files changed. No engine rules, save keys, game schema, or financial formulas altered.
+The existing advance flow automatically shows the report when no mandatory event, strategic offer, or final result takes precedence; these existing priority conditions are deliberately preserved.
+No full interactive iPhone browser test has been performed by the assistant; user acceptance is required.
+
+NEXT: Stage 8B.5 interface consolidation, after user acceptance.
+MASTER REFERENCE: Record 8B.4 reporting dashboard, completed-month briefing, expandable details, unchanged event priority and compatibility. Mark as candidate until user-tested.
